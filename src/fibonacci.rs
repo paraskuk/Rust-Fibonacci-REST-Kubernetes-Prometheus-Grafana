@@ -1,7 +1,7 @@
 pub mod measure_time;
 mod test_fib;
 mod test_measure_time;
-
+use std::collections::HashMap;
 
 pub fn fibonacci(n: u32) -> u32 {
     if n < 2 {
@@ -31,7 +31,6 @@ pub fn fibonacci_dp(n: u32) -> u32 {
     fib[n as usize]
 }
 
-use std::collections::HashMap;
 
 pub fn fibonacci_memo(n: u32, memo: &mut HashMap<u32, u32>) -> u32 {
     if let Some(&result) = memo.get(&n) {
