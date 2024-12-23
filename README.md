@@ -10,21 +10,6 @@ This project provides various implementations of the Fibonacci sequence in Rust,
 - `fibonacci_memo`: A memoized recursive implementation.
 - `fibonacci_iterative`: An iterative implementation.
 
-## Usage
-
-### Running the Program Locally
-
-To run the program, use the following command:
-
-```sh
-cargo run
-```
-
-# Fibonacci Rust Application with Kubernetes
-
-This repository contains a Rust application that computes Fibonacci numbers using different methods (match recursion, memoization, iterative, etc.). It also contains Kubernetes/Helm configurations for deploying the application in a containerized environment.
-
----
 
 ## Prerequisites
 
@@ -32,6 +17,7 @@ This repository contains a Rust application that computes Fibonacci numbers usin
 2. **Docker** (to build and push container images).
 3. **Helm** (to manage Kubernetes deployments).
 4. **Minikube or a Kubernetes Cluster** (for testing).
+5. **Docker Hub Account** (to push container images).
 
 ---
 
