@@ -85,7 +85,6 @@ helm status fibonacci
 kubectl get pods
 ```
 ### 3.4 Accessing the Application
-```sh
 This program just prints to the STDOUT
 ```sh
 kubectl logs deployment/fibonacci-deployment
