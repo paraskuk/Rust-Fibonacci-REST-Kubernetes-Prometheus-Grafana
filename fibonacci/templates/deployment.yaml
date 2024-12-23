@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fibonacci-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fibonacci
+  template:
+    metadata:
+      labels:
+        app: fibonacci
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: fibonacci
+          image: paraskevas68/fibonacci_rust:v2
+          command: [ "/usr/local/bin/fibonacci" ]
+          args: [ "3" ]
+          ports:
+            - containerPort: 8080
