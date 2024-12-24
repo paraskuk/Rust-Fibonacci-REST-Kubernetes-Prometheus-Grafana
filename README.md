@@ -70,11 +70,11 @@ Time taken by fibonacci_iterative: ...
 > Using your username login to Docker Hub and push the image to Docker Hub.
 ```sh
 docker build -t fibonacci_rust:latest .
-docker tag fibonacci_rust:latest myusername/fibonacci_rust:latest
-docker login --username myusername
-docker push myusername/fibonacci_rust:latest
-docker tag fibonacci_rust:latest myusername/fibonacci_rust:v2
-docker push myusername/fibonacci_rust:v2
+docker tag fibonacci_rust:latest ${DOCKER_USERNAME}/fibonacci_rust:latest
+docker login --username ${DOCKER_USERNAME}
+docker push ${DOCKER_USERNAME}/fibonacci_rust:latest
+docker tag fibonacci_rust:latest ${DOCKER_USERNAME}/fibonacci_rust:v2
+docker push ${DOCKER_USERNAME}/fibonacci_rust:v2
 ```
 
 ## 3. Deploying the Application to Kubernetes
