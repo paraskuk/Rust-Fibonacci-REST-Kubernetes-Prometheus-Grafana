@@ -39,7 +39,7 @@ It also includes a Kubernetes deployment using Helm charts.
 
 
 ## Prerequisites
-
+> [!IMPORTANT]
 1. **Rust & Cargo** (for local builds/verification, optional if you only build in Docker).
 2. **Docker** (to build and push container images).
 3. **Helm** (to manage Kubernetes deployments).
@@ -100,18 +100,18 @@ imagePullSecrets:
 ```
 
 ### 3.3 Install Helm Chart
-[!TIP]
+> [!TIP]
 > Navigate to the fibonacci/ directory and install the Helm chart for the first time:
 ```sh
 helm install fibonacci .
 ```
-[!TIP]
+> [!TIP]
 > If you already have the chart installed and want to upgrade it:
 
 ```sh
 helm upgrade --install fibonacci .
 ```
-[!TIP]
+> [!TIP]
 > Check the deployment status:
 
 ```sh
@@ -120,7 +120,7 @@ kubectl get pods
 ```
 ### 3.4 Accessing the Application
 This program just prints to the STDOUT
-[!TIP]
+> [!TIP]
 > You can access the logs of the fibonacci-deployment pod to see the output.
 
 ```sh
@@ -128,7 +128,7 @@ kubectl logs deployment/fibonacci-deployment
 ```
 
 ### 4 .Cleaning Up
-[!WARNING]
+> [!WARNING]
 > This will uninstall helm.
 
 ```sh
