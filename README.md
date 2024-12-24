@@ -41,11 +41,11 @@ It also includes a Kubernetes deployment using Helm charts.
 ## Prerequisites
 > [!IMPORTANT]
 > Before you begin, ensure you have the following tools installed:
-1. **Rust & Cargo** (for local builds/verification, optional if you only build in Docker).
-2. **Docker** (to build and push container images).
-3. **Helm** (to manage Kubernetes deployments).
-4. **Minikube or a Kubernetes Cluster** (for testing).
-5. **Docker Hub Account** (to push container images).
+> 1. **Rust & Cargo** (for local builds/verification, optional if you only build in Docker).
+> 2. **Docker** (to build and push container images).
+> 3. **Helm** (to manage Kubernetes deployments).
+> 4. **Minikube or a Kubernetes Cluster** (for testing).
+> 5. **Docker Hub Account** (to push container images).
 
 ---
 
