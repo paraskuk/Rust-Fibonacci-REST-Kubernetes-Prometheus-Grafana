@@ -51,7 +51,8 @@ It also includes a Kubernetes deployment using Helm charts.
 ## 1. Building the Rust Application Locally (Optional)
 
 You can verify that the application compiles and runs locally:
-
+> [!TIP]
+> You can build the Rust application using Cargo:
 ```sh
 cargo run --package fibonacci --bin fibonacci -- 10
 
@@ -62,6 +63,10 @@ Time taken by fibonacci_iterative: ...
 ```
 
 ## 2. Building the Docker Image
+> [!TIP]
+> You can build the Docker image using the provided Dockerfile
+> Tag the image after its building
+> Using your username login to Docker Hub and push the image to Docker Hub.
 ```sh
 docker build -t fibonacci_rust:latest .
 docker tag fibonacci_rust:latest myusername/fibonacci_rust:latest
@@ -73,18 +78,23 @@ docker push myusername/fibonacci_rust:v2
 
 ## 3. Deploying the Application to Kubernetes
 ### 3.0 Deploy using Manifests
+> [!TIP]
+> You can deploy the application to Kubernetes using the provided deployment.yaml file:
 ```sh
 kubectl apply -f deployment.yaml
 ```
 
 ### 3.1 Or Deploy via Helm Charts - Helm Chart Overview
-* This repository includes a simple Helm chart (in the fibonacci/ directory, for example) that deploys the fibonacci container into Kubernetes. The key files are:
+> [!TIP]
+> This repository includes a simple Helm chart (in the fibonacci/ directory, for example) that deploys the fibonacci container into Kubernetes. The key files are:
 
 * Chart.yaml – Chart metadata.
 * values.yaml – Default values (e.g., image, replicas, etc.).
 * templates/ – Contains Kubernetes manifests (Deployment, Service, etc.).
 
 ### 3.2 Creating Secret
+> [!TIP]
+> Create a secret to pull the image from Docker Hub:
 ```sh
 kubectl create secret docker-registry regcred \
 --docker-server=docker.io \
@@ -94,6 +104,8 @@ kubectl create secret docker-registry regcred \
 ```
 
 Then reference it in your values.yaml or deployment.yaml:
+> [!TIP]
+> Add the following to your deployment.yaml file:
 ```yaml
 imagePullSecrets:
 - name: regcred
