@@ -32,6 +32,7 @@ fn main() {
     let n: u32 = args[1].parse().expect("Please provide a valid integer!");
     let mut memo = HashMap::new();
 
+    println!("Calculating fibonacci(iterative method) for number {n} with result: {}", fibonacci_iterative(n));
     measure_time(|| fibonacci_match(n), "fibonacci_match");
     measure_time(|| fibonacci_memo(n, &mut memo), "fibonacci_memo");
     measure_time(|| fibonacci_iterative(n), "fibonacci_iterative");

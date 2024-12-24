@@ -74,7 +74,11 @@ imagePullSecrets:
 
 ### 3.3 Install Helm Chart
 Navigate to the fibonacci/ directory and install the Helm chart:
-
+For the first time:
+```sh
+helm install fibonacci .
+```
+If you already have the chart installed and want to upgrade it:
 ```sh
 helm upgrade --install fibonacci .
 ```
@@ -94,6 +98,7 @@ kubectl logs deployment/fibonacci-deployment
 ```sh
 helm uninstall fibonacci
 ```
+
 ```sh
 kubectl delete secret regcred
 minkube delete
