@@ -1,3 +1,4 @@
+[![Rust](https://github.com/paraskuk/Fibonacci-Rust-Kubernetes-Deployment-Command-Line-POC-App/actions/workflows/rust.yml/badge.svg)](https://github.com/paraskuk/Fibonacci-Rust-Kubernetes-Deployment-Command-Line-POC-App/actions/workflows/rust.yml)
 # Fibonacci-Rust-Kubernetes-Deployment-Command-Line-POC-App
 
 This project provides various implementations of the Fibonacci sequence in Rust, including recursive, memoized, iterative, and dynamic programming approaches. 
