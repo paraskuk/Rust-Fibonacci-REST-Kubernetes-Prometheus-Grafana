@@ -100,16 +100,19 @@ imagePullSecrets:
 ```
 
 ### 3.3 Install Helm Chart
-Navigate to the fibonacci/ directory and install the Helm chart:
-For the first time:
+[!TIP]
+> Navigate to the fibonacci/ directory and install the Helm chart for the first time:
 ```sh
 helm install fibonacci .
 ```
-If you already have the chart installed and want to upgrade it:
+[!TIP]
+> If you already have the chart installed and want to upgrade it:
+
 ```sh
 helm upgrade --install fibonacci .
 ```
-Check the deployment status:
+[!TIP]
+> Check the deployment status:
 
 ```sh
 helm status fibonacci
@@ -117,11 +120,17 @@ kubectl get pods
 ```
 ### 3.4 Accessing the Application
 This program just prints to the STDOUT
+[!TIP]
+> You can access the logs of the fibonacci-deployment pod to see the output.
+
 ```sh
 kubectl logs deployment/fibonacci-deployment
 ```
 
 ### 4 .Cleaning Up
+[!WARNING]
+> This will uninstall helm.
+
 ```sh
 helm uninstall fibonacci
 ```
