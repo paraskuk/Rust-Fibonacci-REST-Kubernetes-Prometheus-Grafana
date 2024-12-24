@@ -6,7 +6,7 @@ It also includes a Kubernetes deployment using Helm charts.
 
 ## Implementations
 > [!Note]
-The Fibonacci sequence is a series of numbers in which each number is the sum of the two preceding ones, usually starting with 0 and 1.
+> [!TIP] The Fibonacci sequence is a series of numbers in which each number is the sum of the two preceding ones, usually starting with 0 and 1.
 The sequence starts: 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, ...
 The Fibonacci sequence is defined by the recurrence relation: F(n) = F(n-1) + F(n-2) with base cases F(0) = 0 and F(1) = 1.
 The Fibonacci sequence grows exponentially, so the recursive implementation is not efficient for large values of n.
