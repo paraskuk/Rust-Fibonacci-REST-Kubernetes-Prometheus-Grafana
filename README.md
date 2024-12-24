@@ -126,6 +126,9 @@ kubectl logs deployment/fibonacci-deployment
 helm uninstall fibonacci
 ```
 
+> [!CAUTION]
+> This will delete the deployment and service and the minikube cluster.
+
 ```sh
 kubectl delete secret regcred
 minkube delete
