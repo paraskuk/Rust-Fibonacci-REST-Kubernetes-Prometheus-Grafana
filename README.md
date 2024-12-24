@@ -27,7 +27,7 @@ It also includes a Kubernetes deployment using Helm charts.
 
 You can verify that the application compiles and runs locally:
 
-```bash
+```sh
 cargo run --package fibonacci --bin fibonacci -- 10
 
 # Output:
