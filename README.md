@@ -4,23 +4,30 @@
 This project provides various implementations of the Fibonacci sequence in Rust, including recursive, memoized, iterative, and dynamic programming approaches. 
 It also includes a Kubernetes deployment using Helm charts.
 
-
 > [!TIP] 
 > The Fibonacci sequence is a series of numbers in which each number is the sum of the two preceding ones, usually starting with 0 and 1.
+
 > [!TIP]
 > The sequence starts: 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, ...
+
 > [!TIP]
 > The Fibonacci sequence is defined by the recurrence relation: F(n) = F(n-1) + F(n-2) with base cases F(0) = 0 and F(1) = 1.
+
 > [!TIP]
 > The Fibonacci sequence grows exponentially, so the recursive implementation is not efficient for large values of n.
+
 > [!TIP]
 > The iterative and dynamic programming implementations are more efficient for large values of n.
+
 > [!TIP]
 > The memoized recursive implementation is more efficient than the simple recursive implementation because it avoids redundant calculations.
+
 > [!TIP]
 > The pattern matching implementation is similar to the simple recursive implementation but uses pattern matching instead of if-else statements.
+
 > [!TIP]
 > The dynamic programming implementation uses an array to store the Fibonacci numbers and avoids redundant calculations.
+
 > [!TIP]
 > The following implementations are provided:
 
