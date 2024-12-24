@@ -1,6 +1,5 @@
 pub mod measure_time;
-mod test_fib;
-mod test_measure_time;
+
 use std::collections::HashMap;
 
 pub fn fibonacci(n: u32) -> u32 {

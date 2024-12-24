@@ -1,3 +1,5 @@
+
+use fibonacci::fibonacci;
 #[cfg(test)]
 mod tests {
     use crate::fibonacci;
