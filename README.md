@@ -1,6 +1,7 @@
-# Fibonacci Project
+# Fibonacci-Rust-Kubernetes-Deployment-Command-Line-POC-App
 
-This project provides various implementations of the Fibonacci sequence in Rust, including recursive, memoized, iterative, and dynamic programming approaches. It also includes performance measurement and parallel computation using the `rayon` crate.
+This project provides various implementations of the Fibonacci sequence in Rust, including recursive, memoized, iterative, and dynamic programming approaches. 
+It also includes a Kubernetes deployment using Helm charts.
 
 ## Implementations
 
