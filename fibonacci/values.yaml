@@ -2,7 +2,10 @@ replicaCount: 1
 
 image:
   repository:  paraskevas68/fibonacci_rust
-  tag: v9
+  tag: v13
+
+
+
   pullPolicy: IfNotPresent
 
 imagePullSecrets:
