@@ -2,6 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: fibonacci-deployment
+  labels:
+    app: fibonacci
 spec:
   replicas: 1
   selector:
@@ -12,10 +14,35 @@ spec:
       labels:
         app: fibonacci
     spec:
-      imagePullSecrets:
-        - name: regcred
       containers:
         - name: fibonacci
-          image: paraskevas68/fibonacci_rust:v6
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           ports:
             - containerPort: 8080
+          volumeMounts:
+            - name: log4rs-config
+              mountPath: /usr/src/app/log4rs.yaml
+              subPath: log4rs.yaml
+            - name: log-volume
+              mountPath: /var/log
+          livenessProbe:
+            httpGet:
+              path: /fibonacci?n=1
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /fibonacci?n=1
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      volumes:
+        - name: log4rs-config
+          configMap:
+            name: fibonacci-log4rs
+            items:
+              - key: log4rs.yaml
+                path: log4rs.yaml
+        - name: log-volume
+          emptyDir: {}

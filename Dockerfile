@@ -13,22 +13,22 @@ RUN cargo build --release
 # Use a minimal base image
 FROM debian:stable-slim
 
-# Curl and Nano installation
-RUN apt-get update && apt-get install -y curl nano && rm -rf /var/lib/apt/lists/*
-
-# We do NOT set WORKDIR, so we'll rely on absolute paths in the binary.
+# Install dependencies for log4rs if any (optional)
 
 # Copy the compiled binary
 COPY --from=builder /usr/src/app/target/release/fibonacci /usr/local/bin/fibonacci
 
-# Copy the static directory into /usr/src/app/static
-# so that /usr/src/app/static/index.html exists
+# Copy the static directory
 RUN mkdir -p /usr/src/app/static
 COPY static /usr/src/app/static
 
-# If you need to adjust file permissions (optional but often recommended)
+# Ensure the log directory exists
+RUN mkdir -p /var/log
+
+# Set correct permissions
 RUN chmod 755 /usr/local/bin/fibonacci && \
-    chmod -R 755 /usr/src/app/static
+    chmod -R 755 /usr/src/app/static && \
+    chmod -R 755 /var/log
 
 # Expose the Actix port
 EXPOSE 8080

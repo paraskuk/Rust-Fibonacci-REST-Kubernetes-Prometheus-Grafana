@@ -19,7 +19,8 @@
     const number = document.getElementById('number').value;
 
     try {
-      const response = await fetch(`http://localhost:8080/fibonacci?n=${number}`);
+      // Use relative path instead of absolute URL
+      const response = await fetch(`/fibonacci?n=${number}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }

@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fibonacci-log4rs
+  labels:
+    app: fibonacci
+data:
+  log4rs.yaml: |
+    appenders:
+      file:
+        kind: file
+        path: "/var/log/fibonacci.log"
+        encoder:
+          pattern: "{d} - {l} - {m}{n}"
+
+    root:
+      level: info
+      appenders:
+        - file
