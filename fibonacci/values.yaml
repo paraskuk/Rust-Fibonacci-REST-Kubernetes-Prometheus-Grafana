@@ -1,16 +1,17 @@
 replicaCount: 1
 
 image:
-  repository: ${DOCKER_USERNAME}/fibonacci_rust
-  tag: v2
+  repository:  paraskevas68/fibonacci_rust
+  tag: v6
   pullPolicy: IfNotPresent
 
 imagePullSecrets:
   - name: regcred
 
 service:
-  type: ClusterIP
-  port: 80
+  type: NodePort
+  port: 8080
+  nodePort: 30000  # You can specify a port in the range 30000-32767
 
 serviceAccount:
   create: true

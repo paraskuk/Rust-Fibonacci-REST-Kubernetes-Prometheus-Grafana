@@ -1,27 +1,37 @@
-# Use the official Rust image as a base
-FROM rust:1.70 AS builder
+# Use the official Rust image as a base for building
+FROM rust:1.80.1 AS builder
 
-# Set the working directory
+# Set a working directory for building
 WORKDIR /usr/src/app
 
-# Copy the source code
+# Copy all source code into /usr/src/app
 COPY . .
 
-# Normalize file permissions
-RUN find . -type f -exec chmod 644 {} \; && \
-    find . -type d -exec chmod 755 {} \;
-
-# Build the application
+# Build in release mode
 RUN cargo build --release
 
 # Use a minimal base image
 FROM debian:stable-slim
 
-# Copy the compiled binary from the builder stage
+# Curl and Nano installation
+RUN apt-get update && apt-get install -y curl nano && rm -rf /var/lib/apt/lists/*
+
+# We do NOT set WORKDIR, so we'll rely on absolute paths in the binary.
+
+# Copy the compiled binary
 COPY --from=builder /usr/src/app/target/release/fibonacci /usr/local/bin/fibonacci
 
-# Set the correct permissions for the binary
-RUN chmod 755 /usr/local/bin/fibonacci
+# Copy the static directory into /usr/src/app/static
+# so that /usr/src/app/static/index.html exists
+RUN mkdir -p /usr/src/app/static
+COPY static /usr/src/app/static
 
-# Set the entrypoint
-ENTRYPOINT ["fibonacci"]
+# If you need to adjust file permissions (optional but often recommended)
+RUN chmod 755 /usr/local/bin/fibonacci && \
+    chmod -R 755 /usr/src/app/static
+
+# Expose the Actix port
+EXPOSE 8080
+
+# Run the binary
+ENTRYPOINT ["/usr/local/bin/fibonacci"]

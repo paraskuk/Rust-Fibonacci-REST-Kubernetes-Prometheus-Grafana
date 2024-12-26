@@ -16,8 +16,6 @@ spec:
         - name: regcred
       containers:
         - name: fibonacci
-          image: ${DOCKER_USERNAME}/fibonacci_rust:v2
-          command: [ "/usr/local/bin/fibonacci" ]
-          args: [ "3" ]
+          image: paraskevas68/fibonacci_rust:v6
           ports:
             - containerPort: 8080

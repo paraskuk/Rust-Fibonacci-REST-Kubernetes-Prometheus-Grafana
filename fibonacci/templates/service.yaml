@@ -1,15 +1,16 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "fibonacci.fullname" . }}
+  name: fibonacci-service
   labels:
-    {{- include "fibonacci.labels" . | nindent 4 }}
+    app: fibonacci
 spec:
-  type: {{ .Values.service.type }}
+  type: NodePort
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: http
+    - port: 8080
+      targetPort: 8080
+      nodePort: 30012
       protocol: TCP
       name: http
   selector:
-    {{- include "fibonacci.selectorLabels" . | nindent 4 }}
+    app: fibonacci

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fibonacci Calculator</title>
+</head>
+<body>
+<h1>Fibonacci Calculator</h1>
+<form id="fibonacci-form">
+  <label for="number">Enter a number:</label>
+  <input type="number" id="number" name="number" required>
+  <button type="submit">Calculate</button>
+</form>
+<p id="result"></p>
+
+<script>
+  document.getElementById('fibonacci-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const number = document.getElementById('number').value;
+
+    try {
+      const response = await fetch(`http://localhost:8080/fibonacci?n=${number}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const result = await response.json();
+      document.getElementById('result').innerText = `Result: ${result}`;
+    } catch (err) {
+      document.getElementById('result').innerText = `Error: ${err}`;
+      console.error(err);
+    }
+  });
+</script>
+</body>
+</html>
