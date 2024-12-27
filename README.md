@@ -123,9 +123,8 @@ kubectl get services
 kubectl get deployments
 ```
 ### 2.4 Launching the Application
-This program just prints to the STDOUT
 > [!TIP]
-> Launch a service to expose the application:
+> Launch a service to expose the application. Your default web browser will open the application.:
 
 ```sh
 minikube service fibonacci-service
