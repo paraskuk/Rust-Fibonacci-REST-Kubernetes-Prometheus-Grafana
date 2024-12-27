@@ -16,6 +16,10 @@ struct FibonacciInput {
 
 async fn calculate_fibonacci(data: web::Query<FibonacciInput>) -> impl Responder {
     let n = data.n;
+    if n < 0 {
+        error!("Received negative number for Fibonacci calculation: {}", n);
+        return HttpResponse::BadRequest().body("Negative numbers are not allowed");
+    }
     info!("Received request to calculate Fibonacci for n = {}", n);
 
     let result = fibonacci_iterative(n);
