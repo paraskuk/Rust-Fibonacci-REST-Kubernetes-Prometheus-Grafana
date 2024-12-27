@@ -69,12 +69,10 @@ Time taken by fibonacci_iterative: ...
 > Tag the image after its building
 > Using your username login to Docker Hub and push the image to Docker Hub.
 ```sh
-docker build -t fibonacci_rust:latest .
-docker tag fibonacci_rust:latest ${DOCKER_USERNAME}/fibonacci_rust:latest
 docker login --username ${DOCKER_USERNAME}
-docker push ${DOCKER_USERNAME}/fibonacci_rust:latest
-docker tag fibonacci_rust:latest ${DOCKER_USERNAME}/fibonacci_rust:v2
-docker push ${DOCKER_USERNAME}/fibonacci_rust:v2
+docker build -t fibonacci_rust:latest .
+docker tag fibonacci_rust:latest ${DOCKER_USERNAME}/fibonacci_rust:v23
+docker push ${DOCKER_USERNAME}/fibonacci_rust:v23
 ```
 
 ## 3. Deploying the Application to Kubernetes
@@ -118,6 +116,8 @@ imagePullSecrets:
 ```sh
 helm install fibonacci .
 ```
+> [!WARNING]
+> Do not execute helm install again as it will overwrite the existing deployment.
 > [!TIP]
 > If you already have the chart installed and want to upgrade it:
 
@@ -130,26 +130,34 @@ helm upgrade --install fibonacci .
 ```sh
 helm status fibonacci
 kubectl get pods
+kubectl get services
+kubectl get deployments
 ```
-### 3.4 Accessing the Application
+### 3.4 Launching the Application
 This program just prints to the STDOUT
 > [!TIP]
-> You can access the logs of the fibonacci-deployment pod to see the output.
+> Launch a service to expose the application:
 
 ```sh
-kubectl logs deployment/fibonacci-deployment
+minikube service fibonacci-service
 ```
-
+> [!TIP]
+> You can access the logs of the pod in /var/log/fibonacci.log
+> go to inside the pod and check the logs
+```sh
+kubectl exec -it <your-pod-name>  -- /bin/sh
+ cat fibonacci.log
+```
 ### 4 .Cleaning Up
 > [!WARNING]
-> This will uninstall helm.
+> This will uninstall helm release.
 
 ```sh
 helm uninstall fibonacci
 ```
 
 > [!CAUTION]
-> This will delete the deployment and service and the minikube cluster.
+> This will delete the deployment, secret, service and the minikube cluster.
 
 ```sh
 kubectl delete secret regcred
