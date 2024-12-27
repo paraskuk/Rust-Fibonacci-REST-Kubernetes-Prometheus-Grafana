@@ -49,21 +49,9 @@ It also includes a Kubernetes deployment using Helm charts using minikube.
 
 ---
 
-## 1. Building the Rust Application Locally (Optional)
 
-You can verify that the application compiles and runs locally:
-> [!TIP]
-> You can build the Rust application using Cargo:
-```sh
-cargo run --package fibonacci --bin fibonacci -- 10
 
-# Output:
-Time taken by fibonacci_match: ...
-Time taken by fibonacci_memo: ...
-Time taken by fibonacci_iterative: ...
-```
-
-## 2. Building the Docker Image
+## 1. Building the Docker Image
 > [!TIP]
 > You can build the Docker image using the provided Dockerfile
 > Tag the image after its building
@@ -75,15 +63,15 @@ docker tag fibonacci_rust:latest ${DOCKER_USERNAME}/fibonacci_rust:v23
 docker push ${DOCKER_USERNAME}/fibonacci_rust:v23
 ```
 
-## 3. Deploying the Application to Kubernetes
-### 3.0 Deploy using Manifests
+## 2. Deploying the Application to Kubernetes
+### 2.0 Deploy using Manifests
 > [!TIP]
 > You can deploy the application to Kubernetes using the provided deployment.yaml file:
 ```sh
 kubectl apply -f deployment.yaml
 ```
 
-### 3.1 Or Deploy via Helm Charts - Helm Chart Overview
+### 2.1 Or Deploy via Helm Charts - Helm Chart Overview
 > [!TIP]
 > This repository includes a simple Helm chart (in the fibonacci/ directory, for example) that deploys the fibonacci container into Kubernetes. The key files are:
 
@@ -91,7 +79,7 @@ kubectl apply -f deployment.yaml
 * values.yaml – Default values (e.g., image, replicas, etc.).
 * templates/ – Contains Kubernetes manifests (Deployment, Service, etc.).
 
-### 3.2 Creating Secret
+### 2.2 Creating Secret
 > [!TIP]
 > Create a secret to pull the image from Docker Hub:
 ```sh
@@ -110,7 +98,7 @@ imagePullSecrets:
 - name: regcred
 ```
 
-### 3.3 Install Helm Chart
+### 2.3 Install Helm Chart
 > [!TIP]
 > Navigate to the fibonacci/ directory and install the Helm chart for the first time:
 ```sh
@@ -133,7 +121,7 @@ kubectl get pods
 kubectl get services
 kubectl get deployments
 ```
-### 3.4 Launching the Application
+### 2.4 Launching the Application
 This program just prints to the STDOUT
 > [!TIP]
 > Launch a service to expose the application:
@@ -148,7 +136,7 @@ minikube service fibonacci-service
 kubectl exec -it <your-pod-name>  -- /bin/sh
  cat fibonacci.log
 ```
-### 4 .Cleaning Up
+### 3 .Cleaning Up
 > [!WARNING]
 > This will uninstall helm release.
 
