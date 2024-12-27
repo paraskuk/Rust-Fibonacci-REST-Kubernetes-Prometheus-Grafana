@@ -14,6 +14,8 @@ spec:
       labels:
         app: fibonacci
     spec:
+      imagePullSecrets:
+        - name: regcred
       containers:
         - name: fibonacci
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

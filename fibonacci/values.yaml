@@ -1,11 +1,8 @@
 replicaCount: 1
 
 image:
-  repository:  paraskevas68/fibonacci_rust
-  tag: v13
-
-
-
+  repository: paraskevas68/fibonacci_rust
+  tag: v23
   pullPolicy: IfNotPresent
 
 imagePullSecrets:
@@ -14,7 +11,7 @@ imagePullSecrets:
 service:
   type: NodePort
   port: 8080
-  nodePort: 30000  # You can specify a port in the range 30000-32767
+  nodePort: 30000
 
 serviceAccount:
   create: true
