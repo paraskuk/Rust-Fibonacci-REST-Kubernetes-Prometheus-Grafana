@@ -1,5 +1,5 @@
 
-# Rust App that calculates the Fibonacci sequence and deploys it to Kubernetes, using Helm charts
+# Rust App that calculates the Fibonacci sequence and deploys it to Kubernetes 
 
 This project provides various implementations of the Fibonacci sequence in Rust, including recursive, memoized, iterative, and dynamic programming approaches. 
 It also includes a Kubernetes deployment using Helm charts using minikube.
