@@ -134,7 +134,7 @@ minikube service fibonacci-service
 > go to inside the pod and check the logs
 ```sh
 kubectl exec -it <your-pod-name>  -- /bin/sh
- cat fibonacci.log
+cat fibonacci.log
 ```
 ### 3 .Cleaning Up
 > [!WARNING]
