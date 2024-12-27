@@ -59,8 +59,8 @@ It also includes a Kubernetes deployment using Helm charts using minikube.
 ```sh
 docker login --username ${DOCKER_USERNAME}
 docker build -t fibonacci_rust:latest .
-docker tag fibonacci_rust:latest ${DOCKER_USERNAME}/fibonacci_rust:v23
-docker push ${DOCKER_USERNAME}/fibonacci_rust:v23
+docker tag fibonacci_rust:latest ${DOCKER_USERNAME}/fibonacci_rust:v24
+docker push ${DOCKER_USERNAME}/fibonacci_rust:v24
 ```
 
 ## 2. Deploying the Application to Kubernetes
