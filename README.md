@@ -106,6 +106,7 @@ helm install fibonacci .
 ```
 > [!WARNING]
 > Do not execute helm install again as it will overwrite the existing deployment.
+
 > [!TIP]
 > If you already have the chart installed and want to upgrade it:
 
