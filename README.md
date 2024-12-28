@@ -1,4 +1,5 @@
 ![Rust_programming_language_black_logo.svg.png](img/Rust_programming_language_black_logo.svg.png)
+[![Rust](https://github.com/paraskuk/Rust-Fibonacci-Kubernetes-Prometheus-Grafana/actions/workflows/rust.yml/badge.svg)](https://github.com/paraskuk/Rust-Fibonacci-Kubernetes-Prometheus-Grafana/actions/workflows/rust.yml)
 # Rust App that calculates the Fibonacci sequence and deploys it to Kubernetes 
 
 
