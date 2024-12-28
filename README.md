@@ -31,8 +31,7 @@
 > [!TIP]
 > The dynamic programming implementation uses an array to store the Fibonacci numbers and avoids redundant calculations.
 
-> [!TIP]
-> The following implementations are provided:
+The following implementations are provided:
 
 - `fibonacci`: A simple recursive implementation.
 - `fibonacci_match`: A recursive implementation using pattern matching.
