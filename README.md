@@ -156,7 +156,7 @@ kubectl port-forward svc/grafana 3000:3000
 kubectl get svc prometheus -n default -o jsonpath='{.spec.clusterIP}'
 ```
 > [!TIP]
-> Go to the Grafana dashboard and add a new data source with <your-ip> you got from the previous command.
+> Go to the Grafana dashboard and add a new data source with the IP address you just got from the previous command.
 ```sh
 http://<your-ip>:9090
 ```
