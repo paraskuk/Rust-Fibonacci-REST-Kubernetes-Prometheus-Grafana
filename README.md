@@ -1,5 +1,6 @@
-
+![Rust_programming_language_black_logo.svg.png](img/Rust_programming_language_black_logo.svg.png)
 # Rust App that calculates the Fibonacci sequence and deploys it to Kubernetes 
+
 
 > [!TIP]
 > * This project provides various implementations of the Fibonacci sequence in Rust, including recursive, memoized, iterative, and dynamic programming approaches. 
@@ -130,7 +131,7 @@ minikube service fibonacci-service
 kubectl exec -it <your-pod-name>  -- /bin/sh
 cat fibonacci.log
 ```
-2.5 Monitoring the Application
+2.5 Monitoring the Application with Prometheus and Grafana
 > [!TIP]
 > You can monitor the application using Prometheus and Grafana.
 > [!TIP]
@@ -143,10 +144,12 @@ kubectl port-forward svc/prometheus 9090:9090
 kubectl port-forward svc/grafana 3000:3000
 ```
 
+![Prometheus_software_logo.svg.png](img/Prometheus_software_logo.svg.png)
 > [!TIP]
 > Go to http://localhost:9090 to access the Prometheus dashboard.
 > You will see a similar picture as below if you look for the requests_total metric:![prometheus.png](img/prometheus.png)
 
+![Grafana_logo.svg.png](img/Grafana_logo.svg.png)
 > [!TIP]
 > Go to http://localhost:3000 to access the Grafana dashboard.
 > Login with the default username and password (admin/admin).
