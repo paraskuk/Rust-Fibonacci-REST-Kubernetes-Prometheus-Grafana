@@ -66,7 +66,7 @@ docker push ${DOCKER_USERNAME}/fibonacci_rust:v24
 ```
 
 ## 2. Deploying the Application to Kubernetes
-### 2.1 Or Deploy via Helm Charts - Helm Chart Overview
+### 2.1 Deploy via Helm Charts - Helm Chart Overview
 > [!TIP]
 > This repository includes a simple Helm chart (in the fibonacci/ directory, for example) that deploys the fibonacci container into Kubernetes. The key files are:
 
