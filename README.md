@@ -2,6 +2,7 @@
 ![Kubernetes_logo_without_workmark.svg.png](img/Kubernetes_logo_without_workmark.svg.png)
 ![Prometheus_software_logo.svg.png](img/Prometheus_software_logo.svg.png)
 ![Grafana_logo.svg.png](img/Grafana_logo.svg.png)
+![Docker_(container_engine)_logo.svg.png](img/Docker_%28container_engine%29_logo.svg.png)
 # Rust App that calculates the Fibonacci sequence and deploys it to Kubernetes 
 [![Rust](https://github.com/paraskuk/Rust-Fibonacci-Kubernetes-Prometheus-Grafana/actions/workflows/rust.yml/badge.svg)](https://github.com/paraskuk/Rust-Fibonacci-Kubernetes-Prometheus-Grafana/actions/workflows/rust.yml)
 
