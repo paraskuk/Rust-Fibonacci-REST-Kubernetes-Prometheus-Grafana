@@ -143,7 +143,7 @@ cat fibonacci.log
 kubectl port-forward svc/prometheus 9090:9090
 kubectl port-forward svc/grafana 3000:3000
 ```
-
+> [!TIP]
 > Go to http://localhost:9090 to access the Prometheus dashboard.
 > You will see a similar picture as below if you look for the requests_total metric:
 ![prometheus.png](img/prometheus.png)
