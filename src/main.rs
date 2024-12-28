@@ -5,7 +5,7 @@ use serde::Deserialize;
 use fibonacci::fibonacci_iterative;
 use log::{info, error};
 use log4rs;
-use prometheus::{Encoder, TextEncoder, register_counter, register_histogram, gather}; // Add prometheus imports
+use prometheus::{Encoder, TextEncoder, register_counter, register_histogram, register_gauge,gather}; // Add prometheus imports
 
 static STATIC_DIR: &str = "/usr/src/app/static"; // Absolute path
 static LOG4RS_CONFIG: &str = "/usr/src/app/log4rs.yaml"; // Path to mounted log4rs.yaml
@@ -19,6 +19,8 @@ struct FibonacciInput {
 lazy_static::lazy_static! {
     static ref REQUEST_COUNTER: prometheus::Counter = register_counter!("requests_total", "Total number of requests").unwrap();
     static ref REQUEST_HISTOGRAM: prometheus::Histogram = register_histogram!("request_duration_seconds", "Request duration in seconds").unwrap();
+    static ref ACTIVE_REQUESTS: prometheus::Gauge = register_gauge!("active_requests", "Number of active requests").unwrap();
+    static ref RESPONSE_SIZE_HISTOGRAM: prometheus::Histogram = register_histogram!("response_size_bytes", "Response size in bytes").unwrap();
 }
 
 async fn calculate_fibonacci(data: web::Query<FibonacciInput>) -> impl Responder {
@@ -29,13 +31,25 @@ async fn calculate_fibonacci(data: web::Query<FibonacciInput>) -> impl Responder
     }
     info!("Received request to calculate Fibonacci for n = {}", n);
 
+    // Increment the active requests gauge
+    ACTIVE_REQUESTS.inc();
+
+    // Start the timer before the calculation
+    let timer = REQUEST_HISTOGRAM.start_timer();
+
     let result = fibonacci_iterative(n);
     info!("Calculated Fibonacci for n = {}: {}", n, result);
 
     // Increment the request counter and observe the request duration
     REQUEST_COUNTER.inc();
-    let timer = REQUEST_HISTOGRAM.start_timer();
-    timer.observe_duration();
+    timer.observe_duration(); // Stop the timer and observe the duration
+
+    // Decrement the active requests gauge
+    ACTIVE_REQUESTS.dec();
+
+    // Observe the response size
+    let response_size = serde_json::to_string(&result).unwrap().len() as f64;
+    RESPONSE_SIZE_HISTOGRAM.observe(response_size);
 
     HttpResponse::Ok().json(result)
 }
