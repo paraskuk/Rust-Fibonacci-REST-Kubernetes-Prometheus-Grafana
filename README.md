@@ -160,7 +160,6 @@ kubectl get svc prometheus -n default -o jsonpath='{.spec.clusterIP}'
 ```sh
 http://<your-ip>:9090
 ```
-
 > You will see a similar picture as below if you look for the requests_total metric: ![Grafana.png](img/Grafana.png)
 
 
