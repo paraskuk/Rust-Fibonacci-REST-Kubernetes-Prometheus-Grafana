@@ -147,6 +147,18 @@ kubectl port-forward svc/grafana 3000:3000
 > Go to http://localhost:9090 to access the Prometheus dashboard.
 > You will see a similar picture as below if you look for the requests_total metric:![prometheus.png](img/prometheus.png)
 
+> [!TIP]
+> Go to http://localhost:3000 to access the Grafana dashboard.
+> Login with the default username and password (admin/admin).
+> Get your IP with the following command:
+```sh
+kubectl get svc prometheus -n default -o jsonpath='{.spec.clusterIP}'
+```
+> Go to the Grafana dashboard and add a new data source with the IP address you got from the previous command.
+> Tt will be in the format http://<IP>:9090
+> You will see a similar picture as below if you look for the requests_total metric:![grafana.png](img/grafana.png)
+
+
 
 ### 3 .Cleaning Up
 > [!WARNING]
