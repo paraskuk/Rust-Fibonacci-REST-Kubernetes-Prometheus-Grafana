@@ -667,6 +667,7 @@ dependencies = [
  "env_logger",
  "failure",
  "futures-util",
+ "lazy_static",
  "log",
  "log4rs",
  "prometheus",

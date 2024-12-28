@@ -5,6 +5,7 @@ use serde::Deserialize;
 use fibonacci::fibonacci_iterative;
 use log::{info, error};
 use log4rs;
+use prometheus::{Encoder, TextEncoder, register_counter, register_histogram, gather}; // Add prometheus imports
 
 static STATIC_DIR: &str = "/usr/src/app/static"; // Absolute path
 static LOG4RS_CONFIG: &str = "/usr/src/app/log4rs.yaml"; // Path to mounted log4rs.yaml
@@ -12,6 +13,12 @@ static LOG4RS_CONFIG: &str = "/usr/src/app/log4rs.yaml"; // Path to mounted log4
 #[derive(Deserialize)]
 struct FibonacciInput {
     n: u32,
+}
+
+// Register Prometheus metrics
+lazy_static::lazy_static! {
+    static ref REQUEST_COUNTER: prometheus::Counter = register_counter!("requests_total", "Total number of requests").unwrap();
+    static ref REQUEST_HISTOGRAM: prometheus::Histogram = register_histogram!("request_duration_seconds", "Request duration in seconds").unwrap();
 }
 
 async fn calculate_fibonacci(data: web::Query<FibonacciInput>) -> impl Responder {
@@ -25,7 +32,22 @@ async fn calculate_fibonacci(data: web::Query<FibonacciInput>) -> impl Responder
     let result = fibonacci_iterative(n);
     info!("Calculated Fibonacci for n = {}: {}", n, result);
 
+    // Increment the request counter and observe the request duration
+    REQUEST_COUNTER.inc();
+    let timer = REQUEST_HISTOGRAM.start_timer();
+    timer.observe_duration();
+
     HttpResponse::Ok().json(result)
+}
+
+async fn metrics() -> impl Responder {
+    let encoder = TextEncoder::new();
+    let metric_families = gather();
+    let mut buffer = Vec::new();
+    encoder.encode(&metric_families, &mut buffer).unwrap();
+    HttpResponse::Ok()
+        .content_type(encoder.format_type())
+        .body(buffer)
 }
 
 async fn default_handler(req: ServiceRequest) -> Result<ServiceResponse, actix_web::Error> {
@@ -56,6 +78,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .wrap(Logger::default()) // Add Logger middleware
             .route("/fibonacci", web::get().to(calculate_fibonacci))
+            .route("/metrics", web::get().to(metrics)) // Add metrics route
             .service(
                 fs::Files::new("/", STATIC_DIR)
                     .index_file("index.html")
