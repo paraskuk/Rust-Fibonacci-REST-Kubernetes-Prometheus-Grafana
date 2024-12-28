@@ -3,6 +3,8 @@
 
 This project provides various implementations of the Fibonacci sequence in Rust, including recursive, memoized, iterative, and dynamic programming approaches. 
 It also includes a Kubernetes deployment using Helm charts using minikube.
+Cluster has also Prometheus and Grafana installed to monitor the application.
+
 
 > [!TIP] 
 > The Fibonacci sequence is a series of numbers in which each number is the sum of the two preceding ones, usually starting with 0 and 1.
@@ -137,6 +139,24 @@ minikube service fibonacci-service
 kubectl exec -it <your-pod-name>  -- /bin/sh
 cat fibonacci.log
 ```
+2.5 Monitoring the Application
+> [!TIP]
+> You can monitor the application using Prometheus and Grafana.
+> [!TIP]
+> Access the Prometheus dashboard at http://localhost:9090 and the Grafana dashboard at http://localhost:3000.
+> [!IMPORTANT]
+> You need to port forward the Prometheus and Grafana services to access them locally:
+
+```sh
+kubectl port-forward svc/prometheus 9090:9090
+kubectl port-forward svc/grafana 3000:3000
+```
+
+> Go to http://localhost:9090 to access the Prometheus dashboard.
+> You will see a similar picture as below if you look for the requests_total metric:
+![prometheus.png](img/prometheus.png)
+
+
 ### 3 .Cleaning Up
 > [!WARNING]
 > This will uninstall helm release.
