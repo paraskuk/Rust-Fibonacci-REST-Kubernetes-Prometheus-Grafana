@@ -1,7 +1,7 @@
 ![Rust_programming_language_black_logo.svg.png](img/Rust_programming_language_black_logo.svg.png)
-[![Rust](https://github.com/paraskuk/Rust-Fibonacci-Kubernetes-Prometheus-Grafana/actions/workflows/rust.yml/badge.svg)](https://github.com/paraskuk/Rust-Fibonacci-Kubernetes-Prometheus-Grafana/actions/workflows/rust.yml)
+![Kubernetes_logo_without_workmark.svg.png](img/Kubernetes_logo_without_workmark.svg.png)
 # Rust App that calculates the Fibonacci sequence and deploys it to Kubernetes 
-
+[![Rust](https://github.com/paraskuk/Rust-Fibonacci-Kubernetes-Prometheus-Grafana/actions/workflows/rust.yml/badge.svg)](https://github.com/paraskuk/Rust-Fibonacci-Kubernetes-Prometheus-Grafana/actions/workflows/rust.yml)
 
 > [!TIP]
 > * This project provides various implementations of the Fibonacci sequence in Rust, including recursive, memoized, iterative, and dynamic programming approaches. 
