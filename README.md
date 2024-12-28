@@ -69,9 +69,9 @@ docker push ${DOCKER_USERNAME}/fibonacci_rust:v24
 ### 2.1 Deploy via Helm Charts - Helm Chart Overview
 > [!TIP]
 > This repository includes a simple Helm chart (in the fibonacci/ directory, for example) that deploys the fibonacci container into Kubernetes. The key files are:
-> Chart.yaml – Chart metadata.
-> values.yaml – Default values (e.g., image, replicas, etc.).
-> templates/ – Contains Kubernetes manifests (Deployment, Service, etc.).
+- Chart.yaml – Chart metadata. 
+- values.yaml – Default values (e.g., image, replicas, etc.).
+- templates/ – Contains Kubernetes manifests (Deployment, Service, etc.).
 
 ### 2.2 Creating Secret
 > [!TIP]
