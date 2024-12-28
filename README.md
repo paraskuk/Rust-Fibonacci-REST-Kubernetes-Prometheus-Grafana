@@ -66,14 +66,6 @@ docker push ${DOCKER_USERNAME}/fibonacci_rust:v24
 ```
 
 ## 2. Deploying the Application to Kubernetes
-### 2.0 Deploy using Manifests
-> [!TIP]
-> You can deploy the application to Kubernetes using the provided deployment.yaml file:
-```sh
-kubectl apply -f fibonacci/templates/deployment.yaml
-kubectl apply -f fibonacci/templates/service.yaml
-```
-
 ### 2.1 Or Deploy via Helm Charts - Helm Chart Overview
 > [!TIP]
 > This repository includes a simple Helm chart (in the fibonacci/ directory, for example) that deploys the fibonacci container into Kubernetes. The key files are:
