@@ -138,8 +138,10 @@ cat fibonacci.log
 2.5 Monitoring the Application with Prometheus and Grafana
 > [!TIP]
 > You can monitor the application using Prometheus and Grafana.
+
 > [!TIP]
 > Access the Prometheus dashboard at http://localhost:9090 and the Grafana dashboard at http://localhost:3000.
+
 > [!IMPORTANT]
 > You need to port forward the Prometheus and Grafana services to access them locally:
 
