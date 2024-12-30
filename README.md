@@ -147,6 +147,9 @@ cat fibonacci.log
 
 ```sh
 kubectl port-forward svc/prometheus 9090:9090
+```
+
+```sh
 kubectl port-forward svc/grafana 3000:3000
 ```
 
