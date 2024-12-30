@@ -61,8 +61,9 @@ resource "kubernetes_deployment" "fibonacci" {
               path = "/fibonacci?n=1"
               port = 8080
             }
-            initial_delay_seconds = 10
+            initial_delay_seconds = 60
             period_seconds        = 10
+            timeout_seconds       = 10
           }
 
           readiness_probe {
@@ -70,8 +71,9 @@ resource "kubernetes_deployment" "fibonacci" {
               path = "/fibonacci?n=1"
               port = 8080
             }
-            initial_delay_seconds = 10
+            initial_delay_seconds = 60
             period_seconds        = 10
+            timeout_seconds       = 10
           }
 
           volume_mount {
