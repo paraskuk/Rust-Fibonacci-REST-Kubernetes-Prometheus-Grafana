@@ -5,10 +5,13 @@ use serde::Deserialize;
 use fibonacci::fibonacci_iterative;
 use log::{info, error};
 use log4rs;
-use prometheus::{Encoder, TextEncoder, register_counter, register_histogram, register_gauge,gather}; // Add prometheus imports
+use prometheus::{Encoder, TextEncoder, register_counter, register_histogram, register_gauge, gather};
+use std::sync::{Arc, Mutex};
+use tokio_cron_scheduler::{Job, JobScheduler};
 
-static STATIC_DIR: &str = "/usr/src/app/static"; // Absolute path
-static LOG4RS_CONFIG: &str = "/usr/src/app/log4rs.yaml"; // Path to mounted log4rs.yaml
+static STATIC_DIR: &str = "/usr/src/app/static";
+static LOG4RS_CONFIG: &str = "/usr/src/app/log4rs.yaml";
+const MAX_DAILY_REQUESTS: u32 = 1000; // Define the maximum daily requests as a constant
 
 #[derive(Deserialize)]
 struct FibonacciInput {
@@ -23,13 +26,20 @@ lazy_static::lazy_static! {
     static ref RESPONSE_SIZE_HISTOGRAM: prometheus::Histogram = register_histogram!("response_size_bytes", "Response size in bytes").unwrap();
 }
 
-async fn calculate_fibonacci(data: web::Query<FibonacciInput>) -> impl Responder {
+async fn calculate_fibonacci(data: web::Query<FibonacciInput>, daily_request_count: web::Data<Arc<Mutex<u32>>>) -> impl Responder {
     let n = data.n;
     if n < 0 {
         error!("Received negative number for Fibonacci calculation: {}", n);
         return HttpResponse::BadRequest().body("Negative numbers are not allowed");
     }
     info!("Received request to calculate Fibonacci for n = {}", n);
+
+    // Check daily request limit
+    let mut count = daily_request_count.lock().unwrap();
+    if *count >= MAX_DAILY_REQUESTS {
+        return HttpResponse::TooManyRequests().body("Daily request limit reached for this POC site reached. Please visit tomorrow as I dont want to have high cloud costs!");
+    }
+    *count += 1;
 
     // Increment the active requests gauge
     ACTIVE_REQUESTS.inc();
@@ -88,18 +98,35 @@ async fn main() -> std::io::Result<()> {
 
     info!("Starting Fibonacci server...");
 
-    HttpServer::new(|| {
+    // Shared state for daily request count
+    let daily_request_count = Arc::new(Mutex::new(0));
+
+    // Scheduler to reset the daily request count at midnight
+    let scheduler = JobScheduler::new().await.unwrap();
+    let daily_request_count_clone = Arc::clone(&daily_request_count);
+    scheduler.add(Job::new_async("0 0 * * * *", move |_uuid, _l| {
+        let daily_request_count_clone = Arc::clone(&daily_request_count_clone);
+        Box::pin(async move {
+            let mut count = daily_request_count_clone.lock().unwrap();
+            *count = 0;
+            println!("Daily request count reset to 0");
+        })
+    }).unwrap()).await.unwrap();
+    scheduler.start().await.unwrap();
+
+    HttpServer::new(move || {
         App::new()
-            .wrap(Logger::default()) // Add Logger middleware
+            .app_data(web::Data::new(Arc::clone(&daily_request_count)))
+            .wrap(Logger::default())
             .route("/fibonacci", web::get().to(calculate_fibonacci))
-            .route("/metrics", web::get().to(metrics)) // Add metrics route
+            .route("/metrics", web::get().to(metrics))
             .service(
                 fs::Files::new("/", STATIC_DIR)
                     .index_file("index.html")
                     .default_handler(default_handler)
             )
     })
-        .bind("0.0.0.0:8080")? // Ensure binding to all interfaces
+        .bind("0.0.0.0:8080")?
         .run()
         .await
 }
