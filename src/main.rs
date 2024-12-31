@@ -8,6 +8,7 @@ use log4rs;
 use prometheus::{Encoder, TextEncoder, register_counter, register_histogram, register_gauge, gather};
 use std::sync::{Arc, Mutex};
 use tokio_cron_scheduler::{Job, JobScheduler};
+use chrono::Duration as ChronoDuration; // Import chrono::Duration
 
 static STATIC_DIR: &str = "/usr/src/app/static";
 static LOG4RS_CONFIG: &str = "/usr/src/app/log4rs.yaml";

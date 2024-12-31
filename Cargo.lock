@@ -719,6 +719,7 @@ dependencies = [
  "actix-cors",
  "actix-files",
  "actix-web",
+ "chrono",
  "common_failures",
  "env_logger",
  "failure",
