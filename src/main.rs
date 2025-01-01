@@ -13,13 +13,12 @@ use log::{error, info};
 use log4rs;
 use prometheus::{
     gather, register_counter, register_gauge, register_histogram, register_int_counter_vec,
-    Encoder, TextEncoder, IntCounterVec,
+    Encoder, TextEncoder, Histogram, IntCounterVec,
 };
 
 static STATIC_DIR: &str = "/usr/src/app/static";
 static LOG4RS_CONFIG: &str = "/usr/src/app/log4rs.yaml";
 
-// Adjust this limit as desired
 const MAX_DAILY_REQUESTS: u32 = 1001;
 
 #[derive(Deserialize)]
@@ -28,7 +27,7 @@ struct FibonacciInput {
 }
 
 lazy_static::lazy_static! {
-    // Existing metrics
+    // -- Existing metrics --
     static ref REQUEST_COUNTER: prometheus::Counter = register_counter!(
         "requests_total",
         "Total number of requests"
@@ -46,23 +45,23 @@ lazy_static::lazy_static! {
         "Response size in bytes"
     ).unwrap();
 
-    // NEW METRIC #1: Tracks how many times the daily request limit was reached
+    // Tracks how many times the daily request limit was reached
     static ref REQUEST_LIMIT_REACHED_COUNTER: prometheus::Counter = register_counter!(
         "request_limit_reached_total",
         "Number of times the service returned TooManyRequests"
     ).unwrap();
 
-    // NEW METRIC #2: A gauge to record the latest Fibonacci input (n)
-    static ref LATEST_N_GAUGE: prometheus::Gauge = register_gauge!(
-        "latest_fibonacci_input",
-        "Most recent n value requested for Fibonacci"
-    ).unwrap();
-
-    // NEW METRIC #3: Tracks requests by status code (e.g., 200, 400, 429, 500, etc.)
+    // Tracks requests by status code (e.g., 200, 400, 429, 500, etc.)
     static ref REQUEST_STATUS_COUNTER: IntCounterVec = register_int_counter_vec!(
         "request_status_codes_total",
         "Number of requests by HTTP status code",
         &["code"]
+    ).unwrap();
+
+    // --- NEW: A histogram to see every 'n' requested as a distribution ---
+    static ref FIBONACCI_N_HISTOGRAM: Histogram = register_histogram!(
+        "fibonacci_n_distribution",
+        "Distribution of requested Fibonacci inputs (n)"
     ).unwrap();
 }
 
@@ -74,8 +73,8 @@ async fn calculate_fibonacci(
     let n = data.n;
     info!("Received request to calculate Fibonacci for n = {}", n);
 
-    // Update gauge with the *most recent* Fibonacci input
-    LATEST_N_GAUGE.set(n as f64);
+    // Observe the distribution of 'n'
+    FIBONACCI_N_HISTOGRAM.observe(n as f64);
 
     // Acquire lock on daily_request_count
     let mut count = match daily_request_count.lock() {
@@ -88,17 +87,15 @@ async fn calculate_fibonacci(
         }
     };
 
-    // Example of returning a 400 if n is 0 (or invalid)
+    // Example: return a 400 if n == 0
     if n == 0 {
         REQUEST_STATUS_COUNTER.with_label_values(&["400"]).inc();
         return HttpResponse::BadRequest().body("n must be > 0");
     }
 
-    // Check if we've hit the limit
+    // Check if we've hit the daily limit
     if *count >= MAX_DAILY_REQUESTS {
-        // Increment our "limit reached" counter
         REQUEST_LIMIT_REACHED_COUNTER.inc();
-        // Track 429 (Too Many Requests)
         REQUEST_STATUS_COUNTER.with_label_values(&["429"]).inc();
 
         return HttpResponse::TooManyRequests().body(
@@ -108,13 +105,13 @@ async fn calculate_fibonacci(
         );
     }
 
-    // Important: increment the daily count
+    // Increment the daily count
     *count += 1;
 
     // Increase the "active requests" gauge
     ACTIVE_REQUESTS.inc();
 
-    // Start timing this request
+    // Time this request
     let timer = REQUEST_HISTOGRAM.start_timer();
 
     // Calculate Fibonacci
@@ -163,7 +160,7 @@ async fn default_handler(req: ServiceRequest) -> Result<ServiceResponse, actix_w
         }
         Err(_) => {
             error!("index.html not found in: {}", STATIC_DIR);
-            REQUEST_STATUS_COUNTER.with_label_values(&["404"]).inc(); // track 404 here
+            REQUEST_STATUS_COUNTER.with_label_values(&["404"]).inc();
             Ok(ServiceResponse::new(
                 http_req,
                 HttpResponse::NotFound().body("File not found"),
@@ -182,10 +179,10 @@ async fn main() -> std::io::Result<()> {
 
     info!("Starting Fibonacci server...");
 
-    // Wrap the request count in an Actix Data<Mutex<u32>>
+    // Shared state for daily requests
     let daily_request_count = web::Data::new(Mutex::new(0u32));
 
-    // Set up a cron job to reset the daily request count at midnight (UTC)
+    // Reset count daily at midnight
     let scheduler = JobScheduler::new().await.unwrap();
     let daily_request_count_clone = daily_request_count.clone();
 
@@ -206,16 +203,12 @@ async fn main() -> std::io::Result<()> {
 
     scheduler.start().await.unwrap();
 
-    // Start the HTTP server
     HttpServer::new(move || {
         App::new()
-            // Make daily_request_count available to handlers
             .app_data(daily_request_count.clone())
             .wrap(Logger::default())
-            // Routes
             .route("/fibonacci", web::get().to(calculate_fibonacci))
             .route("/metrics", web::get().to(metrics))
-            // Static file service
             .service(
                 fs::Files::new("/", STATIC_DIR)
                     .index_file("index.html")
