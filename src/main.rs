@@ -17,7 +17,7 @@ use prometheus::{
 
 static STATIC_DIR: &str = "/usr/src/app/static";
 static LOG4RS_CONFIG: &str = "/usr/src/app/log4rs.yaml";
-const MAX_DAILY_REQUESTS: u32 = 500;
+const MAX_DAILY_REQUESTS: u32 = 1000;
 
 #[derive(Deserialize)]
 struct FibonacciInput {
