@@ -17,7 +17,7 @@ use prometheus::{
 
 static STATIC_DIR: &str = "/usr/src/app/static";
 static LOG4RS_CONFIG: &str = "/usr/src/app/log4rs.yaml";
-const MAX_DAILY_REQUESTS: u32 = 1000;
+const MAX_DAILY_REQUESTS: u32 = 500;
 
 #[derive(Deserialize)]
 struct FibonacciInput {
@@ -59,10 +59,16 @@ async fn calculate_fibonacci(
         }
     };
 
+    // Check if we've hit the limit
     if *count >= MAX_DAILY_REQUESTS {
-        return HttpResponse::TooManyRequests()
-            .body("Daily request limit reached. Please try again tomorrow.");
+        return HttpResponse::TooManyRequests().body(
+            "Thank you for using our Fibonacci service! \
+             You’ve reached the daily request limit. \
+             Please come back tomorrow or contact us if you need additional requests.",
+        );
     }
+
+    // Important: increment the counter when a request passes the limit check
     *count += 1;
 
     // Increase the "active requests" gauge
@@ -71,6 +77,7 @@ async fn calculate_fibonacci(
     // Start timing this request
     let timer = REQUEST_HISTOGRAM.start_timer();
 
+    // Calculate Fibonacci
     let result = fibonacci_iterative(n);
     info!("Calculated Fibonacci for n = {}: {}", n, result);
 
@@ -132,7 +139,7 @@ async fn main() -> std::io::Result<()> {
 
     info!("Starting Fibonacci server...");
 
-    // Wrap the request count in an Actix Data<Mutex>
+    // Wrap the request count in an Actix Data<Mutex<u32>>
     let daily_request_count = web::Data::new(Mutex::new(0u32));
 
     // Set up a cron job to reset the daily request count at midnight (UTC)
