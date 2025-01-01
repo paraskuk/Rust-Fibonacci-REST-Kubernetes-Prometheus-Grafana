@@ -17,7 +17,7 @@ use prometheus::{
 
 static STATIC_DIR: &str = "/usr/src/app/static";
 static LOG4RS_CONFIG: &str = "/usr/src/app/log4rs.yaml";
-const MAX_DAILY_REQUESTS: u32 = 1000;
+const MAX_DAILY_REQUESTS: u32 = 10;
 
 #[derive(Deserialize)]
 struct FibonacciInput {
@@ -60,10 +60,12 @@ async fn calculate_fibonacci(
     };
 
     if *count >= MAX_DAILY_REQUESTS {
-        return HttpResponse::TooManyRequests()
-            .body("Daily request limit reached. Please try again tomorrow.");
+        return HttpResponse::TooManyRequests().body(
+            "Thank you for using our Fibonacci service! \
+        You’ve reached the daily request limit. \
+        Please come back tomorrow or contact us if you need additional requests.",
+        );
     }
-    *count += 1;
 
     // Increase the "active requests" gauge
     ACTIVE_REQUESTS.inc();
@@ -149,7 +151,7 @@ async fn main() -> std::io::Result<()> {
                     println!("Daily request count reset to 0");
                 })
             })
-                .unwrap(),
+            .unwrap(),
         )
         .await
         .unwrap();
@@ -172,7 +174,7 @@ async fn main() -> std::io::Result<()> {
                     .default_handler(default_handler),
             )
     })
-        .bind("0.0.0.0:8080")?
-        .run()
-        .await
+    .bind("0.0.0.0:8080")?
+    .run()
+    .await
 }

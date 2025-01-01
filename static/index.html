@@ -19,18 +19,31 @@
     const number = document.getElementById('number').value;
 
     try {
-      // Use a relative URL instead of hard-coded absolute URL
+      // Build the request URL
       const url = `/fibonacci?n=${number}`;
-
-      // Debug statements
       console.log('Request URL:', url);
 
       const response = await fetch(url);
-      if (!response.ok) {
+
+      if (response.ok) {
+        // If status is in the 2xx range
+        const result = await response.json();
+        document.getElementById('result').innerText = `Result: ${result}`;
+      }
+      else if (response.status === 400) {
+        // Handle 400 (Bad Request) as a special case
+        const text = await response.text();
+        document.getElementById('result').innerText = `Bad Request: ${text}`;
+      }
+      else if (response.status === 429) {
+        // Handle 429 (Too Many Requests) as a special case
+        const text = await response.text();
+        document.getElementById('result').innerText = text;
+      }
+      else {
+        // Handle all other non-OK statuses
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      const result = await response.json();
-      document.getElementById('result').innerText = `Result: ${result}`;
     } catch (err) {
       document.getElementById('result').innerText = `Error: ${err}`;
       console.error(err);
