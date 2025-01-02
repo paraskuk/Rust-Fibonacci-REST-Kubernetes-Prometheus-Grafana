@@ -2,10 +2,77 @@ provider "kubernetes" {
   config_path = "~/.kube/config"
 }
 
-# Fibonacci Namespace
-resource "kubernetes_namespace" "fibonacci" {
+# Fibonacci ConfigMap for log4rs
+resource "kubernetes_config_map" "fibonacci_log4rs" {
   metadata {
-    name = "fibonacci"
+    name      = "fibonacci-log4rs"
+    namespace = "default"
+  }
+
+  data = {
+    "log4rs.yaml" = <<-EOT
+appenders:
+  file:
+    kind: file
+    path: "/var/log/fibonacci.log"
+    encoder:
+      pattern: "{d} - {l} - {m}{n}"
+root:
+  level: debug
+  appenders:
+    - file
+EOT
+  }
+}
+
+# Prometheus ConfigMap
+resource "kubernetes_config_map" "prometheus_config" {
+  metadata {
+    name      = "prometheus-config"
+    namespace = "default"
+  }
+
+  data = {
+    "prometheus.yml" = <<-EOT
+global:
+  scrape_interval: 15s
+scrape_configs:
+  - job_name: 'otel-collector'
+    static_configs:
+      - targets: ['otel-collector:8889']
+  - job_name: 'fibonacci'
+    static_configs:
+      - targets: ['fibonacci-service:8080']
+EOT
+  }
+}
+
+# OpenTelemetry Collector ConfigMap
+resource "kubernetes_config_map" "otel_collector_config" {
+  metadata {
+    name      = "otel-collector-config"
+    namespace = "default"
+  }
+
+  data = {
+    "otel-collector-config.yaml" = <<-EOT
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+processors:
+  batch:
+exporters:
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [prometheus]
+EOT
   }
 }
 
@@ -13,7 +80,7 @@ resource "kubernetes_namespace" "fibonacci" {
 resource "kubernetes_deployment" "fibonacci" {
   metadata {
     name      = "fibonacci-deployment"
-    namespace = kubernetes_namespace.fibonacci.metadata[0].name
+    namespace = "default"
   }
 
   spec {
@@ -38,8 +105,8 @@ resource "kubernetes_deployment" "fibonacci" {
         }
 
         container {
-          image = "paraskevas68/fibonacci_rust:v36"
           name  = "fibonacci"
+          image = "paraskevas68/fibonacci_rust:v56"
 
           resources {
             limits = {
@@ -91,7 +158,7 @@ resource "kubernetes_deployment" "fibonacci" {
         volume {
           name = "log4rs-config"
           config_map {
-            name = "fibonacci-log4rs"
+            name = kubernetes_config_map.fibonacci_log4rs.metadata[0].name
             items {
               key  = "log4rs.yaml"
               path = "log4rs.yaml"
@@ -112,7 +179,7 @@ resource "kubernetes_deployment" "fibonacci" {
 resource "kubernetes_service" "fibonacci" {
   metadata {
     name      = "fibonacci-service"
-    namespace = kubernetes_namespace.fibonacci.metadata[0].name
+    namespace = "default"
   }
 
   spec {
@@ -155,8 +222,8 @@ resource "kubernetes_deployment" "grafana" {
 
       spec {
         container {
-          image = "grafana/grafana:latest"
           name  = "grafana"
+          image = "grafana/grafana:latest"
 
           port {
             container_port = 3000
@@ -211,8 +278,8 @@ resource "kubernetes_deployment" "otel_collector" {
 
       spec {
         container {
-          image = "otel/opentelemetry-collector:latest"
           name  = "otel-collector"
+          image = "otel/opentelemetry-collector:latest"
 
           command = ["/otelcol", "--config=/conf/otel-collector-config.yaml"]
 
@@ -225,7 +292,7 @@ resource "kubernetes_deployment" "otel_collector" {
         volume {
           name = "otel-collector-config-vol"
           config_map {
-            name = "otel-collector-config"
+            name = kubernetes_config_map.otel_collector_config.metadata[0].name
           }
         }
       }
@@ -287,11 +354,25 @@ resource "kubernetes_deployment" "prometheus" {
 
       spec {
         container {
-          image = "prom/prometheus:latest"
           name  = "prometheus"
+          image = "prom/prometheus:latest"
+
+          args = ["--config.file=/etc/prometheus/prometheus.yml"]
 
           port {
             container_port = 9090
+          }
+
+          volume_mount {
+            name       = "prometheus-config-vol"
+            mount_path = "/etc/prometheus"
+          }
+        }
+
+        volume {
+          name = "prometheus-config-vol"
+          config_map {
+            name = kubernetes_config_map.prometheus_config.metadata[0].name
           }
         }
       }
