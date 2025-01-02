@@ -1,4 +1,5 @@
 ![Rust_programming_language_black_logo.svg.png](img/Rust_programming_language_black_logo.svg.png)
+![Terraform_Logo.png](img/Terraform_Logo.png)
 ![Kubernetes_logo_without_workmark.svg.png](img/Kubernetes_logo_without_workmark.svg.png)
 ![Prometheus_software_logo.svg.png](img/Prometheus_software_logo.svg.png)
 ![Grafana_logo.svg.png](img/Grafana_logo.svg.png)
@@ -71,6 +72,35 @@ docker tag fibonacci_rust:latest ${DOCKER_USERNAME}/fibonacci_rust:v24
 docker push ${DOCKER_USERNAME}/fibonacci_rust:v24
 ```
 
+## 1. Deploying the Application to Kubernetes via Terraform
+> [!TIP]
+> This repository includes a simple Terraform module (in the terraform/ directory) that deploys the fibonacci container into Kubernetes. The key files are:
+> - main.tf – Terraform configuration.
+
+### 1.1 Deploy the Application
+> [!TIP]
+> Navigate to the terraform/ directory and run the following commands to deploy the application:
+```sh
+terraform init
+```
+
+```sh
+terraform validate
+```
+
+```sh
+terraform apply
+```
+
+- Once all resources are deployed you can start the minikube service to access the application.
+```sh
+minikube service fibonacci-service
+```
+
+- You can go to this section to see about monitoring [2.5 Monitoring the Application with Prometheus and Grafana](#25-monitoring-the-application-with-prometheus-and-grafana)
+ 
+
+
 ## 2. Deploying the Application to Kubernetes
 ### 2.1 Deploy via Helm Charts - Helm Chart Overview
 > [!TIP]
@@ -136,7 +166,7 @@ minikube service fibonacci-service
 kubectl exec -it <your-pod-name>  -- /bin/sh
 cat fibonacci.log
 ```
-2.5 Monitoring the Application with Prometheus and Grafana
+### 2.5 Monitoring the Application with Prometheus and Grafana
 > [!TIP]
 > You can monitor the application using Prometheus and Grafana.
 
