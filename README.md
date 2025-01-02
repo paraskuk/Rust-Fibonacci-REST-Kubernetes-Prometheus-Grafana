@@ -162,7 +162,7 @@ minikube service fibonacci-service
 ```
 > [!TIP]
 > You can access the logs of the pod in /var/log/fibonacci.log
-> go to inside the pod and check the logs
+> go inside the pod and check the logs
 ```sh
 kubectl exec -it <your-pod-name>  -- /bin/sh
 cat fibonacci.log
