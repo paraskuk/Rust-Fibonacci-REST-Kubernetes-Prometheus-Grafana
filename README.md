@@ -166,7 +166,7 @@ minikube service fibonacci-service
 kubectl exec -it <your-pod-name>  -- /bin/sh
 cat fibonacci.log
 ```
-2.5 Monitoring the Application with Prometheus and Grafana
+### 2.5 Monitoring the Application with Prometheus and Grafana
 > [!TIP]
 > You can monitor the application using Prometheus and Grafana.
 
