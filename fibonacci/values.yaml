@@ -1,8 +1,8 @@
 replicaCount: 1
 
 image:
-  repository: paraskevas68/fibonacci_rust
-  tag: v56
+  repository: "${DOCKER_USERNAME}/fibonacci_rust"
+  tag: "${DOCKER_TAG}"
 
   pullPolicy: IfNotPresent
 

@@ -106,7 +106,7 @@ resource "kubernetes_deployment" "fibonacci" {
 
         container {
           name  = "fibonacci"
-          image = "paraskevas68/fibonacci_rust:v56"
+          image = "${var.docker_username}/fibonacci_rust:${var.docker_image_tag}"
 
           resources {
             limits = {

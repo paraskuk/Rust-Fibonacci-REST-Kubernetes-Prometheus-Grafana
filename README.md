@@ -69,8 +69,8 @@ The following implementations are provided:
 ```sh
 docker login --username ${DOCKER_USERNAME}
 docker build -t fibonacci_rust:latest .
-docker tag fibonacci_rust:latest ${DOCKER_USERNAME}/fibonacci_rust:v24
-docker push ${DOCKER_USERNAME}/fibonacci_rust:v24
+docker tag fibonacci_rust:latest ${DOCKER_USERNAME}/fibonacci_rust:${DOCKER_TAG}
+docker push ${DOCKER_USERNAME}/fibonacci_rust:${DOCKER_TAG}
 ```
 
 ## 1. Deploying the Application to Kubernetes via Terraform
@@ -90,7 +90,7 @@ terraform validate
 ```
 
 ```sh
-terraform apply
+terraform apply -var="docker_username=your_docker_username" -var="docker_image_tag=your_docker_image_tag"
 ```
 
 - Once all resources are deployed you can start the minikube service to access the application.
@@ -133,7 +133,7 @@ imagePullSecrets:
 > [!TIP]
 > Navigate to the fibonacci/ directory and install the Helm chart for the first time:
 ```sh
-helm install fibonacci .
+helm install fibonacci . --set image.repository=${DOCKER_USERNAME}/fibonacci_rust --set image.tag=${DOCKER_TAG}
 ```
 > [!WARNING]
 > Do not execute helm install again as it will overwrite the existing deployment.
@@ -142,7 +142,7 @@ helm install fibonacci .
 > If you already have the chart installed and want to upgrade it:
 
 ```sh
-helm upgrade --install fibonacci .
+helm upgrade --install fibonacci . --set image.repository=${DOCKER_USERNAME}/fibonacci_rust --set image.tag=${DOCKER_TAG}
 ```
 > [!TIP]
 > Check the deployment status:
