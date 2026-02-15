@@ -56,6 +56,57 @@ The following implementations are provided:
 > 3. **Helm** (to manage Kubernetes deployments).
 > 4. **Minikube or a Kubernetes Cluster** (for testing).
 > 5. **Docker Hub Account** (to push container images).
+> 6. **Make** (for using the Makefile automation - see installation below).
+
+### Installing Make on Windows
+
+Choose one of these options:
+
+**Option 1: Chocolatey**
+```cmd
+choco install make
+```
+
+**Option 2: Scoop**
+```cmd
+scoop install make
+```
+
+**Option 3: Use Git Bash** (comes with Git for Windows)
+
+**Option 4: Use WSL** (Windows Subsystem for Linux)
+
+---
+
+## Quick Start with Makefile
+
+> [!TIP]
+> A Makefile is provided for easy Grafana setup and service management!
+
+**Check if services are running:**
+```cmd
+make check-all
+```
+
+**Port-forward Grafana:**
+```cmd
+make grafana
+```
+
+**Port-forward all services at once:**
+```cmd
+make all
+```
+
+**Generate test traffic:**
+```cmd
+make traffic
+```
+
+**View all available commands:**
+```cmd
+make help
+```
 
 ---
 
@@ -322,42 +373,289 @@ kubectl exec -it <your-pod-name> -- /bin/sh
 cat fibonacci.log
 ```
 ### 3.5 Monitoring the Application with Prometheus and Grafana
-> [!TIP]
-> You can monitor the application using Prometheus and Grafana.
 
+#### Step 1: Access Prometheus
 > [!TIP]
-> Access the Prometheus dashboard at http://localhost:9090 and the Grafana dashboard at http://localhost:3000.
-
-> [!IMPORTANT]
-> You need to port forward the Prometheus and Grafana services to access them locally:
+> Port forward Prometheus to access the metrics dashboard:
 
 ```cmd
 kubectl port-forward svc/prometheus 9090:9090
 ```
 
-```cmd
-kubectl port-forward svc/grafana 3000:3000
-```
+Then visit **http://localhost:9090** to access the Prometheus dashboard.
 
 > [!TIP]
-> Go to http://localhost:9090 to access the Prometheus dashboard.
 > You will see a similar picture as below if you look for the requests_total metric:![prometheus.png](img/prometheus.png)
 
-> [!TIP]
-> Go to http://localhost:3000 to access the Grafana dashboard.
-> Login with the default username and password (admin/admin).
-> Get your IP with the following command:
-> 
+#### Step 2: Access Grafana
+> [!IMPORTANT]
+> Port forward Grafana to access the dashboard:
+
 ```cmd
-kubectl get svc prometheus -n default -o jsonpath='{.spec.clusterIP}'
+kubectl port-forward deployment/grafana 3000:3000
 ```
+
+Then visit **http://localhost:3000** to access the Grafana dashboard.
+
+**Default Credentials:**
+- Username: `admin`
+- Password: `admin`
+
+> [!NOTE]
+> You will be prompted to change the password on first login.
+
+#### Step 3: Configure Prometheus Data Source in Grafana
+
+1. **Log in to Grafana** at http://localhost:3000
+2. Go to **Configuration** → **Data Sources** (⚙️ icon on the left sidebar)
+3. Click **"Add data source"**
+4. Select **"Prometheus"**
+5. Configure the data source:
+   - **Name:** `Prometheus`
+   - **URL:** `http://prometheus:9090`
+   - Leave other settings as default
+6. Click **"Save & Test"** - you should see a green success message
+
 > [!TIP]
-> Go to the Grafana dashboard and add a new data source with the IP address you just got from the previous command.
+> The URL `http://prometheus:9090` works because Prometheus and Grafana are in the same Kubernetes cluster and can communicate via service names.
+
+#### Step 4: Import the Fibonacci Dashboard
+
+> [!IMPORTANT]
+> A pre-configured dashboard JSON file is included in the project: `grafana-dashboard.json`
+
+**Option 1: Import via JSON File**
+1. In Grafana, click the **"+"** icon on the left sidebar
+2. Select **"Import"**
+3. Click **"Upload JSON file"**
+4. Select the `grafana-dashboard.json` file from the project directory
+5. Click **"Load"**
+6. Select the Prometheus data source you just created
+7. Click **"Import"**
+
+**Option 2: Import via JSON Content**
+1. Open `grafana-dashboard.json` in a text editor
+2. Copy the entire content
+3. In Grafana, click **"+"** → **"Import"**
+4. Paste the JSON content into the text area
+5. Click **"Load"**
+6. Select the Prometheus data source
+7. Click **"Import"**
+
+#### Step 5: Understanding the Dashboard Metrics
+
+The Fibonacci Service Dashboard includes the following panels:
+
+**📊 Key Metrics:**
+
+1. **Request Rate (req/s)**
+   - Shows requests per second over time
+   - Query: `rate(requests_total[1m])`
+
+2. **HTTP Status Codes (200, 400, 429, 500)**
+   - Tracks success and error rates
+   - 200: Successful requests
+   - 400: Invalid input errors
+   - 429: Rate limit exceeded
+   - 500: Internal server errors
+
+3. **Request Duration - P99, P95, P50**
+   - P99: 99th percentile latency (worst 1% of requests)
+   - P95: 95th percentile latency (worst 5% of requests)
+   - P50: Median latency (50th percentile)
+   - Query: `histogram_quantile(0.99, rate(request_duration_seconds_bucket[1m]))`
+
+4. **Active Requests**
+   - Number of requests currently being processed
+   - Helps identify bottlenecks
+
+5. **Total Requests**
+   - Cumulative count of all requests since startup
+
+6. **Success Rate (%)**
+   - Percentage of requests returning 200 OK
+   - Formula: `(200 requests / total requests) * 100`
+
+7. **Average Response Time**
+   - Mean response time across all requests
+   - Query: `rate(request_duration_seconds_sum[1m]) / rate(request_duration_seconds_count[1m])`
+
+8. **Rate Limit Reached Count**
+   - How many times the daily limit (1001 requests) was hit
+
+9. **Response Size Distribution**
+   - P99 and P50 response sizes in bytes
+
+10. **Fibonacci Input Distribution (N values)**
+    - Shows distribution of the 'n' parameter requested by users
+
+#### Step 6: Generate Traffic to See Metrics
+
+> [!TIP]
+> Use the Makefile to generate traffic easily:
+
 ```cmd
-http://<your-ip>:9090
+make traffic
 ```
+
+Or manually generate traffic:
+
+```cmd
+# Make multiple requests
+for /L %i in (1,1,100) do curl "http://localhost:8080/fibonacci?n=10"
+```
+
+Or use PowerShell:
+```powershell
+1..100 | ForEach-Object { Invoke-WebRequest "http://localhost:8080/fibonacci?n=10" }
+```
+
+Or use PowerShell:
+```powershell
+1..100 | ForEach-Object { Invoke-WebRequest "http://localhost:8080/fibonacci?n=10" }
+```
+
+> [!NOTE]
+> After generating traffic, refresh the Grafana dashboard to see the metrics update in real-time!
+
+#### Available Metrics Endpoints
+
+All metrics exposed by the Fibonacci service:
+
+| Metric Name | Type | Description |
+|------------|------|-------------|
+| `requests_total` | Counter | Total number of requests |
+| `request_duration_seconds` | Histogram | Request duration with buckets |
+| `active_requests` | Gauge | Current active requests |
+| `response_size_bytes` | Histogram | Response size distribution |
+| `request_status_codes_total` | Counter | Count by status code (200, 400, 429, 500) |
+| `request_limit_reached_total` | Counter | Times rate limit was reached |
+| `fibonacci_n_distribution` | Histogram | Distribution of input 'n' values |
+
 > [!TIP]
-> You will see a similar picture as below if you look for the requests_total metric:![Grafana.png](img/Grafana.png)
+> You can query these metrics directly in Prometheus at http://localhost:9090 or view them formatted at http://localhost:8080/metrics
+
+> [!TIP]
+> You will see a similar picture as below in your Grafana dashboard:![Grafana.png](img/Grafana.png)
+
+---
+
+## 🔧 Makefile Commands Reference
+
+> [!TIP]
+> A comprehensive Makefile is provided to simplify Grafana setup and service management!
+
+### Available Make Targets
+
+| Command | Description |
+|---------|-------------|
+| `make help` | Show all available commands |
+| `make check-all` | Check if all services are running |
+| `make grafana` | Port-forward Grafana (http://localhost:3000) |
+| `make prometheus` | Port-forward Prometheus (http://localhost:9090) |
+| `make fibonacci` | Port-forward Fibonacci Service (http://localhost:8080) |
+| `make all` | Port-forward all services in separate windows |
+| `make traffic` | Generate 100 test requests to populate metrics |
+| `make dashboard` | Show dashboard JSON file location and info |
+| `make setup-datasource` | Show instructions for Prometheus data source setup |
+| `make import-dashboard` | Show instructions for importing dashboard |
+| `make clean` | Stop all port-forward processes |
+| `make quickstart` | Show quick start guide |
+
+### Common Workflows
+
+**Workflow 1: Quick Setup (Recommended)**
+```cmd
+# 1. Check all services are running
+make check-all
+
+# 2. Start all port-forwards in background
+make all
+
+# 3. Follow data source setup instructions
+make setup-datasource
+
+# 4. Follow dashboard import instructions  
+make import-dashboard
+
+# 5. Generate traffic to populate metrics
+make traffic
+```
+
+**Workflow 2: Manual Control**
+```cmd
+# Terminal 1: Port-forward Grafana
+make grafana
+
+# Terminal 2: Port-forward Fibonacci Service
+make fibonacci
+
+# Terminal 3: Generate traffic
+make traffic
+```
+
+**Workflow 3: View Dashboard Info**
+```cmd
+# Show dashboard information
+make dashboard
+
+# Show setup instructions
+make setup-datasource
+make import-dashboard
+```
+
+**Workflow 4: Cleanup**
+```cmd
+# Stop all port-forwards
+make clean
+```
+
+### Example Usage
+
+**Step 1: Verify everything is deployed**
+```cmd
+C:\Users\par_p\OneDrive\Rust\fibonacci> make check-all
+"Checking if Grafana pod is running..."
+NAME                     READY   STATUS    RESTARTS   AGE
+grafana-996d5648-z5sfv   1/1     Running   0          17m
+"Checking if Prometheus pod is running..."
+NAME                          READY   STATUS    RESTARTS   AGE
+prometheus-68f955bd68-c2qdq   1/1     Running   0          17m
+"Checking if Fibonacci service is running..."
+NAME                TYPE       CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
+fibonacci-service   NodePort   10.103.104.242   <none>        8080:30000/TCP   14m
+========================================
+All services are running!
+========================================
+```
+
+**Step 2: Start port-forwarding**
+```cmd
+C:\Users\par_p\OneDrive\Rust\fibonacci> make all
+Starting port-forward for ALL services...
+This will open 3 command windows:
+  - Grafana: http://localhost:3000
+  - Prometheus: http://localhost:9090
+  - Fibonacci: http://localhost:8080
+
+All port-forwards started in separate windows!
+```
+
+**Step 3: Generate traffic**
+```cmd
+C:\Users\par_p\OneDrive\Rust\fibonacci> make traffic
+Generating 100 test requests to populate metrics...
+10 requests completed...
+25 requests completed...
+50 requests completed...
+75 requests completed...
+100 requests completed!
+```
+
+> [!NOTE]
+> The Makefile works on Windows, Linux, and macOS. On Windows, it uses `cmd.exe` commands; on Unix systems, it uses shell commands.
+
+---
 
 ### 3. Cleaning Up
 > [!WARNING]
