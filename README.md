@@ -7,7 +7,7 @@
 ![Docker_logo.png](img/Docker_logo.png)
 
 # Rust App that calculates the Fibonacci sequence and deploys it to Kubernetes 
-[![Rust](https://github.com/paraskuk/Rust-Fibonacci-Kubernetes-Prometheus-Grafana/actions/workflows/rust.yml/badge.svg)](https://github.com/paraskuk/Rust-Fibonacci-Kubernetes-Prometheus-Grafana/actions/workflows/rust.yml)
+[![Rust](https://github.com/yourusername/Rust-Fibonacci-Kubernetes-Prometheus-Grafana/actions/workflows/rust.yml/badge.svg)](https://github.com/yourusername/Rust-Fibonacci-Kubernetes-Prometheus-Grafana/actions/workflows/rust.yml)
 
 > [!TIP]
 > * This project provides various implementations of the Fibonacci sequence in Rust, including recursive, memoized, iterative, and dynamic programming approaches. 
@@ -222,15 +222,15 @@ docker push your_private_registry_url/fibonacci_rust:v1.0
 #### Docker Image Available on Docker Hub
 > [!IMPORTANT]
 > The image has been successfully pushed to Docker Hub:
-> - **Image**: `paraskevas68/fibonacci_rust:v104`
+> - **Image**: `yourdockerhubusername/fibonacci_rust:v104`
 > - **Version**: v104 ✅ (Latest - Clean & Fixed)
 > - **Previous Versions**: 
 >   - v103 - Ultra Fun Edition (rainbow theme)
 >   - v102 - Modern UI with Bootstrap 5
 >   - v101 - Fixed web UI response handling
 >   - v100 - Initial release
-> - **Access**: Available at [Docker Hub Registry](https://hub.docker.com/r/paraskevas68/fibonacci_rust)
-> - **Pull Command**: `docker pull paraskevas68/fibonacci_rust:v104`
+> - **Access**: Available at [Docker Hub Registry](https://hub.docker.com/r/yourdockerhubusername/fibonacci_rust)
+> - **Pull Command**: `docker pull yourdockerhubusername/fibonacci_rust:v104`
 > 
 > **✅ Changes in v104 - CLEAN & WORKING**: 
 > - 🎯 **FIXED**: Result now displays correctly every time!
@@ -253,9 +253,9 @@ See the detailed instructions in sections [3. Deploying the Application to Kuber
 > You can build the Docker image using the provided Dockerfile, tag it, and push to Docker Hub.
 > The latest version v104 features a clean, professional UI with working result display!
 ```cmd
-docker login --username paraskevas68
-docker build -t paraskevas68/fibonacci_rust:v104 .
-docker push paraskevas68/fibonacci_rust:v104
+docker login --username yourdockerhubusername
+docker build -t yourdockerhubusername/fibonacci_rust:v104 .
+docker push yourdockerhubusername/fibonacci_rust:v104
 ```
 
 > [!NOTE]
@@ -296,7 +296,7 @@ terraform validate
 ```
 
 ```cmd
-terraform apply -var="docker_username=paraskevas68" -var="docker_image_tag=v104"
+terraform apply -var="docker_username=yourdockerhubusername" -var="docker_image_tag=v104"
 ```
 
 - Once all resources are deployed you can start the minikube service to access the application.
@@ -338,7 +338,7 @@ imagePullSecrets:
 > [!TIP]
 > Navigate to the fibonacci/ directory and install the Helm chart for the first time using the v104 image:
 ```cmd
-helm install fibonacci . --set image.repository=paraskevas68/fibonacci_rust --set image.tag=v104
+helm install fibonacci . --set image.repository=yourdockerhubusername/fibonacci_rust --set image.tag=v104
 ```
 > [!WARNING]
 > Do not execute helm install again as it will overwrite the existing deployment.
@@ -347,7 +347,7 @@ helm install fibonacci . --set image.repository=paraskevas68/fibonacci_rust --se
 > If you already have the chart installed and want to upgrade it with the v104 image:
 
 ```cmd
-helm upgrade --install fibonacci . --set image.repository=paraskevas68/fibonacci_rust --set image.tag=v104
+helm upgrade --install fibonacci . --set image.repository=yourdockerhubusername/fibonacci_rust --set image.tag=v104
 ```
 > [!TIP]
 > Check the deployment status:
