@@ -9,7 +9,7 @@ This document outlines potential improvements and modernization strategies for t
 ### 1.1 Dependency Updates and Management
 - **Update Rust Edition**: Consider upgrading to Rust 2024 edition when it becomes available (currently using 2021)
 - **Dependency Audit**: Remove unused dependencies (`warp` and `tower` appear unused in the codebase)
-- **Replace `lazy_static`**: Migrate from `lazy_static` to `std::sync::OnceLock` or `LazyLock` (stable in Rust 1.80.0, August 2024) - this is immediately actionable since the project already uses Rust 1.80.1
+- **Replace `lazy_static`**: Migrate from `lazy_static` to `std::sync::OnceLock` or `std::sync::LazyLock` (stable in Rust 1.80.0, August 2024) - this is immediately actionable since the project already uses Rust 1.80.1
 - **Update Dependencies**: Keep dependencies up-to-date with latest security patches
 - **Dependency Pinning**: Consider using specific version pinning for critical dependencies in production
 
