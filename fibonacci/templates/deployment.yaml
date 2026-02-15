@@ -28,7 +28,7 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           securityContext:
             allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: false
+            readOnlyRootFilesystem: true
             capabilities:
               drop:
                 - ALL
@@ -71,6 +71,8 @@ spec:
               subPath: log4rs.yaml
             - name: log-volume
               mountPath: /var/log
+            - name: tmp-volume
+              mountPath: /tmp
       volumes:
         - name: log4rs-config
           configMap:
@@ -79,4 +81,6 @@ spec:
               - key: log4rs.yaml
                 path: log4rs.yaml
         - name: log-volume
+          emptyDir: {}
+        - name: tmp-volume
           emptyDir: {}
