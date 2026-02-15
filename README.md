@@ -78,6 +78,87 @@ scoop install make
 
 ---
 
+## GitHub Secrets Configuration
+
+> [!IMPORTANT]
+> If you're using GitHub Actions for CI/CD, you need to set up the following secrets:
+
+### Setting up Docker Hub Credentials
+
+1. Go to your GitHub repository
+2. Navigate to **Settings** → **Secrets and variables** → **Actions**
+3. Click **New repository secret**
+4. Add the following secrets:
+
+| Secret Name | Description | Example Value |
+|------------|-------------|---------------|
+| `DOCKER_USERNAME` | Your Docker Hub username | `yourusername` |
+| `DOCKER_PASSWORD` | Your Docker Hub password or access token | `dckr_pat_xxxxx` |
+
+> [!TIP]
+> **Using Docker Hub Access Tokens (Recommended)**:
+> 1. Log in to [Docker Hub](https://hub.docker.com/)
+> 2. Go to **Account Settings** → **Security** → **New Access Token**
+> 3. Create a token with **Read, Write, Delete** permissions
+> 4. Use this token as `DOCKER_PASSWORD` (more secure than your actual password)
+
+### For Local Development
+
+You can use a `.env` file for convenience:
+
+1. Copy the example file:
+   ```cmd
+   copy .env.example .env
+   ```
+
+2. Edit `.env` and fill in your Docker Hub credentials
+
+3. Load the variables:
+
+**Windows (CMD):**
+```cmd
+for /F "tokens=*" %i in (.env) do set %i
+```
+
+**Windows (PowerShell):**
+```powershell
+Get-Content .env | ForEach-Object {
+    if ($_ -match '^([^=]+)=(.*)$') {
+        [Environment]::SetEnvironmentVariable($matches[1], $matches[2])
+    }
+}
+```
+
+**Linux/Mac:**
+```bash
+export $(cat .env | xargs)
+```
+
+> [!WARNING]
+> Never commit `.env` file to Git! It's already in `.gitignore`.
+
+Or set the environment variable before running commands:
+
+**Windows (CMD):**
+```cmd
+set DOCKER_USERNAME=yourusername
+docker build -t %DOCKER_USERNAME%/fibonacci_rust:v104 .
+```
+
+**Windows (PowerShell):**
+```powershell
+$env:DOCKER_USERNAME = "yourusername"
+docker build -t ${env:DOCKER_USERNAME}/fibonacci_rust:v104 .
+```
+
+**Linux/Mac:**
+```bash
+export DOCKER_USERNAME=yourusername
+docker build -t ${DOCKER_USERNAME}/fibonacci_rust:v104 .
+```
+
+---
+
 ## Quick Start with Makefile
 
 > [!TIP]
@@ -222,15 +303,15 @@ docker push your_private_registry_url/fibonacci_rust:v1.0
 #### Docker Image Available on Docker Hub
 > [!IMPORTANT]
 > The image has been successfully pushed to Docker Hub:
-> - **Image**: `yourdockerhubusername/fibonacci_rust:v104`
+> - **Image**: `${DOCKER_USERNAME}/fibonacci_rust:v104`
 > - **Version**: v104 ✅ (Latest - Clean & Fixed)
 > - **Previous Versions**: 
 >   - v103 - Ultra Fun Edition (rainbow theme)
 >   - v102 - Modern UI with Bootstrap 5
 >   - v101 - Fixed web UI response handling
 >   - v100 - Initial release
-> - **Access**: Available at [Docker Hub Registry](https://hub.docker.com/r/yourdockerhubusername/fibonacci_rust)
-> - **Pull Command**: `docker pull yourdockerhubusername/fibonacci_rust:v104`
+> - **Access**: Available at [Docker Hub Registry](https://hub.docker.com/r/${DOCKER_USERNAME}/fibonacci_rust)
+> - **Pull Command**: `docker pull ${DOCKER_USERNAME}/fibonacci_rust:v104`
 > 
 > **✅ Changes in v104 - CLEAN & WORKING**: 
 > - 🎯 **FIXED**: Result now displays correctly every time!
@@ -253,9 +334,9 @@ See the detailed instructions in sections [3. Deploying the Application to Kuber
 > You can build the Docker image using the provided Dockerfile, tag it, and push to Docker Hub.
 > The latest version v104 features a clean, professional UI with working result display!
 ```cmd
-docker login --username yourdockerhubusername
-docker build -t yourdockerhubusername/fibonacci_rust:v104 .
-docker push yourdockerhubusername/fibonacci_rust:v104
+docker login --username ${DOCKER_USERNAME}
+docker build -t ${DOCKER_USERNAME}/fibonacci_rust:v104 .
+docker push ${DOCKER_USERNAME}/fibonacci_rust:v104
 ```
 
 > [!NOTE]
@@ -296,7 +377,7 @@ terraform validate
 ```
 
 ```cmd
-terraform apply -var="docker_username=yourdockerhubusername" -var="docker_image_tag=v104"
+terraform apply -var="docker_username=${DOCKER_USERNAME}" -var="docker_image_tag=v104"
 ```
 
 - Once all resources are deployed you can start the minikube service to access the application.
@@ -317,14 +398,36 @@ minikube service fibonacci-service
 
 ### 3.2 Creating Secret
 > [!TIP]
-> Create a secret to pull the image from Docker Hub:
-```sh
+> Create a secret to pull the image from Docker Hub using environment variables:
+
+**Linux/Mac:**
+```bash
 kubectl create secret docker-registry regcred \
 --docker-server=docker.io \
---docker-username=myusername \
---docker-password=MY_PERSONAL_ACCESS_TOKEN \
---docker-email=myemail@example.com
+--docker-username=${DOCKER_USERNAME} \
+--docker-password=${DOCKER_PASSWORD} \
+--docker-email=${DOCKER_EMAIL}
 ```
+
+**Windows (PowerShell):**
+```powershell
+kubectl create secret docker-registry regcred `
+--docker-server=docker.io `
+--docker-username=$env:DOCKER_USERNAME `
+--docker-password=$env:DOCKER_PASSWORD `
+--docker-email=$env:DOCKER_EMAIL
+```
+
+**Windows (CMD):**
+```cmd
+kubectl create secret docker-registry regcred --docker-server=docker.io --docker-username=%DOCKER_USERNAME% --docker-password=%DOCKER_PASSWORD% --docker-email=%DOCKER_EMAIL%
+```
+
+> [!NOTE]
+> Make sure to set these environment variables before running the command:
+> - `DOCKER_USERNAME`: Your Docker Hub username
+> - `DOCKER_PASSWORD`: Your Docker Hub password or access token
+> - `DOCKER_EMAIL`: Your Docker Hub email
 
 Then reference it in your values.yaml or deployment.yaml:
 > [!TIP]
@@ -338,7 +441,7 @@ imagePullSecrets:
 > [!TIP]
 > Navigate to the fibonacci/ directory and install the Helm chart for the first time using the v104 image:
 ```cmd
-helm install fibonacci . --set image.repository=yourdockerhubusername/fibonacci_rust --set image.tag=v104
+helm install fibonacci . --set image.repository=${DOCKER_USERNAME}/fibonacci_rust --set image.tag=v104
 ```
 > [!WARNING]
 > Do not execute helm install again as it will overwrite the existing deployment.
@@ -347,7 +450,7 @@ helm install fibonacci . --set image.repository=yourdockerhubusername/fibonacci_
 > If you already have the chart installed and want to upgrade it with the v104 image:
 
 ```cmd
-helm upgrade --install fibonacci . --set image.repository=yourdockerhubusername/fibonacci_rust --set image.tag=v104
+helm upgrade --install fibonacci . --set image.repository=${DOCKER_USERNAME}/fibonacci_rust --set image.tag=v104
 ```
 > [!TIP]
 > Check the deployment status:
