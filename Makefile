@@ -1,5 +1,5 @@
  
-.PHONY: help check-grafana check-prometheus check-fibonacci check-all grafana prometheus fibonacci all traffic dashboard setup-datasource import-dashboard clean quickstart restart restart-all
+.PHONY: help check-grafana check-prometheus check-fibonacci check-all grafana prometheus fibonacci all traffic dashboard setup-datasource import-dashboard clean quickstart restart restart-all diagnose
 
 # Default target
 help:
@@ -17,6 +17,7 @@ help:
 	@echo "  make dashboard        - Show dashboard information"
 	@echo "  make setup-datasource - Instructions for Prometheus data source setup"
 	@echo "  make import-dashboard - Instructions for importing dashboard"
+	@echo "  make diagnose         - Diagnose connection issues and show Prometheus URL"
 	@echo "  make restart          - Restart Grafana and Prometheus"
 	@echo "  make restart-all      - Restart all services (Grafana, Prometheus, Fibonacci)"
 	@echo "  make clean            - Stop all port-forwards"
@@ -317,4 +318,49 @@ restart-all:
 	@echo ""
 	@kubectl get pods
 
+# Diagnose connection issues
+diagnose:
+	@echo ""
+	@echo "=========================================="
+	@echo "Prometheus Connection Diagnostics"
+	@echo "=========================================="
+	@echo ""
+	@echo "Checking Prometheus Service..."
+	@kubectl get svc prometheus
+	@echo ""
+	@echo "Checking Prometheus Endpoints..."
+	@kubectl get endpoints prometheus
+	@echo ""
+	@echo "Checking Prometheus Pod..."
+	@kubectl get pods -l app=prometheus
+	@echo ""
+	@echo "=========================================="
+	@echo "Prometheus URLs for Grafana Data Source"
+	@echo "=========================================="
+	@echo ""
+	@echo "Try these URLs in Grafana (in this order):"
+	@echo ""
+	@echo "1. Full service name (RECOMMENDED):"
+	@echo "   http://prometheus.default.svc.cluster.local:9090"
+	@echo ""
+	@echo "2. Short service name:"
+	@echo "   http://prometheus:9090"
+	@echo ""
+	@echo "3. Cluster IP (GUARANTEED TO WORK):"
+	@kubectl get svc prometheus -o jsonpath='   http://{.spec.clusterIP}:9090'
+	@echo ""
+	@echo ""
+	@echo "4. Pod IP (last resort):"
+	@kubectl get pod -l app=prometheus -o jsonpath='   http://{.items[0].status.podIP}:9090'
+	@echo ""
+	@echo ""
+	@echo "=========================================="
+	@echo "Testing Connectivity from Grafana Pod"
+	@echo "=========================================="
+	@echo ""
+	@echo "Testing if Grafana can reach Prometheus..."
+	@kubectl exec $$(kubectl get pod -l app=grafana -o jsonpath='{.items[0].metadata.name}') -- wget -qO- --timeout=5 http://prometheus:9090/api/v1/query?query=up 2>&1 | findstr "success" >nul && echo "SUCCESS: Grafana can reach Prometheus!" || echo "FAILED: Grafana cannot reach Prometheus"
+	@echo ""
+	@echo "IMPORTANT: Make sure Access is set to 'Server' not 'Browser'"
+	@echo ""
 
