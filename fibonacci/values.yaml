@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: "paraskevas68/fibonacci_rust"
+  repository: "yourdockerhubusername/fibonacci_rust"
   tag: "v107"
 
   pullPolicy: IfNotPresent
