@@ -9,7 +9,7 @@ This document outlines potential improvements and modernization strategies for t
 ### 1.1 Dependency Updates and Management
 - **Update Rust Edition**: Consider upgrading to Rust 2024 edition when it becomes available (currently using 2021)
 - **Dependency Audit**: Remove unused dependencies (`warp` and `tower` appear unused in the codebase)
-- **Replace `lazy_static`**: Migrate from `lazy_static` to `std::sync::OnceLock` or `LazyLock` (stable in Rust 1.80+)
+- **Replace `lazy_static`**: Migrate from `lazy_static` to `std::sync::OnceLock` or `LazyLock` (stable in Rust 1.80.0, August 2024) - this is immediately actionable since the project already uses Rust 1.80.1
 - **Update Dependencies**: Keep dependencies up-to-date with latest security patches
 - **Dependency Pinning**: Consider using specific version pinning for critical dependencies in production
 
@@ -42,7 +42,7 @@ This document outlines potential improvements and modernization strategies for t
 
 ### 2.1 Dockerfile Optimization
 - **Multi-stage Build Improvements**: Use distroless or alpine-based images for even smaller final images
-- **Specific Rust Version**: Pin to a specific Rust version tag instead of `rust:1.80.1` to avoid surprises
+- **Pin with SHA Digest**: Consider pinning the Rust image using SHA digest (e.g., `rust:1.80.1@sha256:...`) instead of just the tag for even more reproducible builds
 - **Security Scanning**: Add image scanning in CI/CD (Trivy, Snyk, or Grype)
 - **Non-root User**: Run container as non-root user for better security
 - **Build Cache Optimization**: Leverage BuildKit and cache mounts for faster builds
