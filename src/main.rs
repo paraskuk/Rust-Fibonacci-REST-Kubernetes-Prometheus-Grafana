@@ -316,7 +316,12 @@ async fn main() -> std::io::Result<()> {
                     .add((header::X_FRAME_OPTIONS, "DENY"))
                     .add((header::X_CONTENT_TYPE_OPTIONS, "nosniff"))
                     .add(("X-XSS-Protection", "1; mode=block"))
-                    .add(("Content-Security-Policy", "default-src 'self'"))
+                    .add(("Content-Security-Policy",
+                        "default-src 'self'; \
+                         style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; \
+                         script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; \
+                         font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; \
+                         img-src 'self' data:"))
                     .add((
                         header::STRICT_TRANSPORT_SECURITY,
                         "max-age=31536000; includeSubDomains",
