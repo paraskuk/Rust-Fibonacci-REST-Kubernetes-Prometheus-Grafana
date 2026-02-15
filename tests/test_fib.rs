@@ -1,4 +1,3 @@
-
 use fibonacci::fibonacci;
 #[cfg(test)]
 mod tests {

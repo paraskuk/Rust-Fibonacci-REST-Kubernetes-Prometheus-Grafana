@@ -13,22 +13,27 @@ RUN cargo build --release
 # Use a minimal base image
 FROM debian:stable-slim
 
-# Install dependencies for log4rs if any (optional)
+# Create a non-root user and group
+RUN groupadd -r fibonacci && useradd -r -g fibonacci fibonacci
+
+# Install minimal dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy the compiled binary
 COPY --from=builder /usr/src/app/target/release/fibonacci /usr/local/bin/fibonacci
 
+# Create directories and set permissions
+RUN mkdir -p /usr/src/app/static /var/log && \
+    chown -R fibonacci:fibonacci /usr/src/app /var/log && \
+    chmod 755 /usr/local/bin/fibonacci
+
 # Copy the static directory
-RUN mkdir -p /usr/src/app/static
-COPY static /usr/src/app/static
+COPY --chown=fibonacci:fibonacci static /usr/src/app/static
 
-# Ensure the log directory exists
-RUN mkdir -p /var/log
-
-# Set correct permissions
-RUN chmod 755 /usr/local/bin/fibonacci && \
-    chmod -R 755 /usr/src/app/static && \
-    chmod -R 755 /var/log
+# Switch to non-root user
+USER fibonacci
 
 # Expose the Actix port
 EXPOSE 8080

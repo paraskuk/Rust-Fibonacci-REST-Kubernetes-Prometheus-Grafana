@@ -1,112 +1,194 @@
 use actix_files as fs;
 use actix_web::{
     dev::{ServiceRequest, ServiceResponse},
-    middleware::Logger,
-    web, App, HttpResponse, HttpServer, Responder,
+    http::header,
+    middleware::{DefaultHeaders, Logger},
+    web, App, HttpResponse, HttpServer, Result as ActixResult,
 };
-use serde::Deserialize;
-use std::sync::Mutex;
+use serde::{Deserialize, Serialize};
+use std::sync::{LazyLock, Mutex};
+use thiserror::Error;
 use tokio_cron_scheduler::{Job, JobScheduler};
 
 use fibonacci::fibonacci_iterative;
 use log::{error, info};
-use log4rs;
 use prometheus::{
     gather, register_counter, register_gauge, register_histogram, register_int_counter_vec,
-    Encoder, TextEncoder, Histogram, IntCounterVec,
+    Encoder, Histogram, IntCounterVec, TextEncoder,
 };
 
 static STATIC_DIR: &str = "/usr/src/app/static";
 static LOG4RS_CONFIG: &str = "/usr/src/app/log4rs.yaml";
 
 const MAX_DAILY_REQUESTS: u32 = 1001;
+const MAX_FIBONACCI_INPUT: u32 = 50; // Limit to prevent DoS
+
+#[derive(Error, Debug)]
+pub enum AppError {
+    #[error("Invalid input: {0}")]
+    InvalidInput(String),
+    #[error("Request limit reached")]
+    RateLimitExceeded,
+    #[error("Internal server error: {0}")]
+    InternalError(String),
+}
+
+impl actix_web::ResponseError for AppError {
+    fn error_response(&self) -> HttpResponse {
+        match self {
+            AppError::InvalidInput(msg) => {
+                REQUEST_STATUS_COUNTER.with_label_values(&["400"]).inc();
+                HttpResponse::BadRequest().json(ErrorResponse { error: msg.clone() })
+            }
+            AppError::RateLimitExceeded => {
+                REQUEST_LIMIT_REACHED_COUNTER.inc();
+                REQUEST_STATUS_COUNTER.with_label_values(&["429"]).inc();
+                HttpResponse::TooManyRequests().json(ErrorResponse {
+                    error: "Thank you for using our Fibonacci service! \
+                             You've reached the daily request limit. \
+                             Please come back tomorrow or contact us if you need additional requests.".to_string(),
+                })
+            }
+            AppError::InternalError(msg) => {
+                REQUEST_STATUS_COUNTER.with_label_values(&["500"]).inc();
+                HttpResponse::InternalServerError().json(ErrorResponse { error: msg.clone() })
+            }
+        }
+    }
+}
+
+#[derive(Serialize)]
+struct ErrorResponse {
+    error: String,
+}
 
 #[derive(Deserialize)]
 struct FibonacciInput {
     n: u32,
 }
 
-lazy_static::lazy_static! {
-    // -- Existing metrics --
-    static ref REQUEST_COUNTER: prometheus::Counter = register_counter!(
-        "requests_total",
-        "Total number of requests"
-    ).unwrap();
-    static ref REQUEST_HISTOGRAM: prometheus::Histogram = register_histogram!(
-        "request_duration_seconds",
-        "Request duration in seconds"
-    ).unwrap();
-    static ref ACTIVE_REQUESTS: prometheus::Gauge = register_gauge!(
-        "active_requests",
-        "Number of active requests"
-    ).unwrap();
-    static ref RESPONSE_SIZE_HISTOGRAM: prometheus::Histogram = register_histogram!(
-        "response_size_bytes",
-        "Response size in bytes"
-    ).unwrap();
+#[derive(Serialize)]
+struct HealthResponse {
+    status: String,
+    version: String,
+}
 
-    // Tracks how many times the daily request limit was reached
-    static ref REQUEST_LIMIT_REACHED_COUNTER: prometheus::Counter = register_counter!(
+#[derive(Serialize)]
+struct ReadinessResponse {
+    status: String,
+    checks: ReadinessChecks,
+}
+
+#[derive(Serialize)]
+struct ReadinessChecks {
+    daily_requests: String,
+}
+
+// Replace lazy_static with std::sync::LazyLock
+static REQUEST_COUNTER: LazyLock<prometheus::Counter> =
+    LazyLock::new(|| register_counter!("requests_total", "Total number of requests").unwrap());
+
+static REQUEST_HISTOGRAM: LazyLock<prometheus::Histogram> = LazyLock::new(|| {
+    register_histogram!("request_duration_seconds", "Request duration in seconds").unwrap()
+});
+
+static ACTIVE_REQUESTS: LazyLock<prometheus::Gauge> =
+    LazyLock::new(|| register_gauge!("active_requests", "Number of active requests").unwrap());
+
+static RESPONSE_SIZE_HISTOGRAM: LazyLock<prometheus::Histogram> =
+    LazyLock::new(|| register_histogram!("response_size_bytes", "Response size in bytes").unwrap());
+
+static REQUEST_LIMIT_REACHED_COUNTER: LazyLock<prometheus::Counter> = LazyLock::new(|| {
+    register_counter!(
         "request_limit_reached_total",
         "Number of times the service returned TooManyRequests"
-    ).unwrap();
+    )
+    .unwrap()
+});
 
-    // Tracks requests by status code (e.g., 200, 400, 429, 500, etc.)
-    static ref REQUEST_STATUS_COUNTER: IntCounterVec = register_int_counter_vec!(
+static REQUEST_STATUS_COUNTER: LazyLock<IntCounterVec> = LazyLock::new(|| {
+    register_int_counter_vec!(
         "request_status_codes_total",
         "Number of requests by HTTP status code",
         &["code"]
-    ).unwrap();
+    )
+    .unwrap()
+});
 
-    // --- NEW: A histogram to see every 'n' requested as a distribution ---
-    static ref FIBONACCI_N_HISTOGRAM: Histogram = register_histogram!(
+static FIBONACCI_N_HISTOGRAM: LazyLock<Histogram> = LazyLock::new(|| {
+    register_histogram!(
         "fibonacci_n_distribution",
         "Distribution of requested Fibonacci inputs (n)"
-    ).unwrap();
+    )
+    .unwrap()
+});
+
+// Health check endpoint
+async fn health() -> ActixResult<HttpResponse> {
+    Ok(HttpResponse::Ok().json(HealthResponse {
+        status: "healthy".to_string(),
+        version: env!("CARGO_PKG_VERSION").to_string(),
+    }))
 }
 
-// Handler for calculating Fibonacci
+// Readiness check endpoint
+async fn ready(daily_request_count: web::Data<Mutex<u32>>) -> ActixResult<HttpResponse> {
+    let count = daily_request_count
+        .lock()
+        .map_err(|e| AppError::InternalError(format!("Lock error: {}", e)))?;
+
+    let status = if *count < MAX_DAILY_REQUESTS {
+        "ready"
+    } else {
+        "not_ready"
+    };
+
+    Ok(HttpResponse::Ok().json(ReadinessResponse {
+        status: status.to_string(),
+        checks: ReadinessChecks {
+            daily_requests: format!("{}/{}", count, MAX_DAILY_REQUESTS),
+        },
+    }))
+}
+
+// Handler for calculating Fibonacci with improved error handling
 async fn calculate_fibonacci(
     data: web::Query<FibonacciInput>,
     daily_request_count: web::Data<Mutex<u32>>,
-) -> impl Responder {
+) -> ActixResult<HttpResponse> {
     let n = data.n;
     info!("Received request to calculate Fibonacci for n = {}", n);
 
     // Observe the distribution of 'n'
     FIBONACCI_N_HISTOGRAM.observe(n as f64);
 
-    // Acquire lock on daily_request_count
-    let mut count = match daily_request_count.lock() {
-        Ok(c) => c,
-        Err(e) => {
-            error!("Failed to acquire lock on daily_request_count: {}", e);
-            // Track 500 (Internal Server Error)
-            REQUEST_STATUS_COUNTER.with_label_values(&["500"]).inc();
-            return HttpResponse::InternalServerError().body("Internal server error");
-        }
-    };
-
-    // Example: return a 400 if n == 0
+    // Validate input
     if n == 0 {
-        REQUEST_STATUS_COUNTER.with_label_values(&["400"]).inc();
-        return HttpResponse::BadRequest().body("n must be > 0");
+        return Err(AppError::InvalidInput("Input value must be greater than 0".to_string()).into());
     }
 
-    // Check if we've hit the daily limit
-    if *count >= MAX_DAILY_REQUESTS {
-        REQUEST_LIMIT_REACHED_COUNTER.inc();
-        REQUEST_STATUS_COUNTER.with_label_values(&["429"]).inc();
-
-        return HttpResponse::TooManyRequests().body(
-            "Thank you for using our Fibonacci service! \
-             You’ve reached the daily request limit. \
-             Please come back tomorrow or contact us if you need additional requests.",
-        );
+    if n > MAX_FIBONACCI_INPUT {
+        return Err(AppError::InvalidInput(format!(
+            "Input value must be <= {} to prevent resource exhaustion",
+            MAX_FIBONACCI_INPUT
+        ))
+        .into());
     }
 
-    // Increment the daily count
-    *count += 1;
+    // Check rate limit and increment counter in a separate scope to drop the lock before await
+    {
+        let mut count = daily_request_count
+            .lock()
+            .map_err(|e| AppError::InternalError(format!("Failed to acquire lock: {}", e)))?;
+
+        // Check if we've hit the daily limit
+        if *count >= MAX_DAILY_REQUESTS {
+            return Err(AppError::RateLimitExceeded.into());
+        }
+
+        // Increment the daily count
+        *count += 1;
+    } // Lock is dropped here
 
     // Increase the "active requests" gauge
     ACTIVE_REQUESTS.inc();
@@ -114,8 +196,11 @@ async fn calculate_fibonacci(
     // Time this request
     let timer = REQUEST_HISTOGRAM.start_timer();
 
-    // Calculate Fibonacci
-    let result = fibonacci_iterative(n);
+    // Calculate Fibonacci using spawn_blocking to prevent blocking the async runtime
+    let result = tokio::task::spawn_blocking(move || fibonacci_iterative(n))
+        .await
+        .map_err(|e| AppError::InternalError(format!("Calculation error: {}", e)))?;
+
     info!("Calculated Fibonacci for n = {}: {}", n, result);
 
     // Count this request in Prometheus metrics
@@ -128,16 +213,18 @@ async fn calculate_fibonacci(
     ACTIVE_REQUESTS.dec();
 
     // Observe response size
-    let response_size = serde_json::to_string(&result).unwrap().len() as f64;
+    let response_size = serde_json::to_string(&result)
+        .map_err(|e| AppError::InternalError(format!("Serialization error: {}", e)))?
+        .len() as f64;
     RESPONSE_SIZE_HISTOGRAM.observe(response_size);
 
     // Track 200 (OK)
     REQUEST_STATUS_COUNTER.with_label_values(&["200"]).inc();
-    HttpResponse::Ok().json(result)
+    Ok(HttpResponse::Ok().json(result))
 }
 
 // Handler for Prometheus metrics
-async fn metrics() -> impl Responder {
+async fn metrics() -> impl actix_web::Responder {
     let encoder = TextEncoder::new();
     let metric_families = gather();
     let mut buffer = Vec::new();
@@ -193,10 +280,10 @@ async fn main() -> std::io::Result<()> {
                 Box::pin(async move {
                     let mut count = daily_request_count_clone.lock().unwrap();
                     *count = 0;
-                    println!("Daily request count reset to 0");
+                    info!("Daily request count reset to 0");
                 })
             })
-                .unwrap(),
+            .unwrap(),
         )
         .await
         .unwrap();
@@ -204,9 +291,39 @@ async fn main() -> std::io::Result<()> {
     scheduler.start().await.unwrap();
 
     HttpServer::new(move || {
+        // Configure CORS
+        let cors = actix_cors::Cors::default()
+            .allowed_origin("http://localhost:8080")
+            .allowed_origin("http://localhost:3000")
+            .allowed_methods(vec!["GET", "POST"])
+            .allowed_headers(vec![
+                header::AUTHORIZATION,
+                header::ACCEPT,
+                header::CONTENT_TYPE,
+            ])
+            .max_age(3600);
+
         App::new()
             .app_data(daily_request_count.clone())
+            .app_data(web::Data::new(web::PayloadConfig::new(1024 * 1024))) // 1MB max payload
             .wrap(Logger::default())
+            .wrap(cors)
+            // Add security headers
+            .wrap(
+                DefaultHeaders::new()
+                    .add((header::X_FRAME_OPTIONS, "DENY"))
+                    .add((header::X_CONTENT_TYPE_OPTIONS, "nosniff"))
+                    .add(("X-XSS-Protection", "1; mode=block"))
+                    .add(("Content-Security-Policy", "default-src 'self'"))
+                    .add((
+                        header::STRICT_TRANSPORT_SECURITY,
+                        "max-age=31536000; includeSubDomains",
+                    )),
+            )
+            // Health and readiness endpoints
+            .route("/health", web::get().to(health))
+            .route("/ready", web::get().to(ready))
+            // Business endpoints
             .route("/fibonacci", web::get().to(calculate_fibonacci))
             .route("/metrics", web::get().to(metrics))
             .service(
@@ -215,7 +332,9 @@ async fn main() -> std::io::Result<()> {
                     .default_handler(default_handler),
             )
     })
-        .bind("0.0.0.0:8080")?
-        .run()
-        .await
+    .bind("0.0.0.0:8080")?
+    .keep_alive(std::time::Duration::from_secs(60))
+    .client_request_timeout(std::time::Duration::from_secs(30))
+    .run()
+    .await
 }
