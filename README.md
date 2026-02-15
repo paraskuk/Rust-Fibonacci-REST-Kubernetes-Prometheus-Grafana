@@ -219,5 +219,5 @@ helm uninstall fibonacci
 
 ```sh
 kubectl delete secret regcred
-minkube delete
+minikube delete
 ```
