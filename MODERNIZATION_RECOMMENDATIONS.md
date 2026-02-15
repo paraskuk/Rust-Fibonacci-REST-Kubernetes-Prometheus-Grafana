@@ -334,7 +334,7 @@ This document outlines potential improvements and modernization strategies for t
 6. Add CI/CD improvements (caching, security scanning)
 
 ### Medium Priority (Significant Impact)
-1. Migrate to tracing from log/log4rs
+1. Migrate to tracing from log and log4rs
 2. Replace lazy_static with std::sync::LazyLock/OnceLock
 3. Implement proper configuration management
 4. Add OpenAPI documentation
