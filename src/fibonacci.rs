@@ -18,14 +18,12 @@ use std::collections::HashMap;
 ///  assert_eq!(result, 1);
 /// ```
 pub fn fibonacci(n: u32) -> u32 {
-
     if n < 2 {
         n
     } else {
         fibonacci(n - 1) + fibonacci(n - 2)
     }
 }
-
 
 ///
 ///
@@ -49,7 +47,6 @@ pub fn fibonacci_match(n: u32) -> u32 {
         _ => fibonacci(n - 1) + fibonacci(n - 2),
     }
 }
-
 
 ///
 ///
@@ -78,7 +75,6 @@ pub fn fibonacci_dp(n: u32) -> u32 {
     }
     fib[n as usize]
 }
-
 
 ///
 ///
@@ -140,4 +136,3 @@ pub fn fibonacci_iterative(n: u32) -> u32 {
     }
     b
 }
-
