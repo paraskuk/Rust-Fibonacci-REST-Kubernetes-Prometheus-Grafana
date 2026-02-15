@@ -10,7 +10,6 @@ mod tests {
 
     #[test]
     fn test_measure_time() {
-        let result = measure_time(|| dummy_function(), "dummy_function");
-        assert_eq!(result, ());
+        measure_time(dummy_function, "dummy_function");
     }
 }

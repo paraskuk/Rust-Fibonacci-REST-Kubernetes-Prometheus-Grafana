@@ -131,7 +131,7 @@ pub fn fibonacci_iterative(n: u32) -> u32 {
     let mut b = 1;
     for _ in 1..n {
         let temp = b;
-        b = a + b;
+        b += a;
         a = temp;
     }
     b
