@@ -74,15 +74,23 @@ jobs:
     - name: Install Rust toolchain
       uses: actions-rust-lang/setup-rust-toolchain@v1
     
+    - name: Cache cargo tools
+      uses: actions/cache@v4
+      with:
+        path: ~/.cargo/bin
+        key: ${{ runner.os }}-cargo-tools-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-tools-
+    
     - name: Install cargo-audit
-      run: cargo install cargo-audit
+      run: cargo install cargo-audit --locked || true
     
     - name: Run cargo audit
       continue-on-error: true
       run: cargo audit --deny warnings
     
     - name: Install cargo-deny
-      run: cargo install cargo-deny
+      run: cargo install cargo-deny --locked || true
     
     - name: Run cargo deny
       continue-on-error: true

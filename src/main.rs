@@ -164,12 +164,12 @@ async fn calculate_fibonacci(
 
     // Validate input
     if n == 0 {
-        return Err(AppError::InvalidInput("n must be > 0".to_string()).into());
+        return Err(AppError::InvalidInput("Input value must be greater than 0".to_string()).into());
     }
 
     if n > MAX_FIBONACCI_INPUT {
         return Err(AppError::InvalidInput(format!(
-            "n must be <= {} to prevent resource exhaustion",
+            "Input value must be <= {} to prevent resource exhaustion",
             MAX_FIBONACCI_INPUT
         ))
         .into());
