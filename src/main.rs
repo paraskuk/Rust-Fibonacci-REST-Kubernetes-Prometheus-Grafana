@@ -321,7 +321,8 @@ async fn main() -> std::io::Result<()> {
                          style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; \
                          script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; \
                          font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; \
-                         img-src 'self' data:"))
+                         img-src 'self' data:; \
+                         connect-src 'self' https://cdn.jsdelivr.net"))
                     .add((
                         header::STRICT_TRANSPORT_SECURITY,
                         "max-age=31536000; includeSubDomains",
