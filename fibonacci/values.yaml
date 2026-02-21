@@ -1,0 +1,44 @@
+replicaCount: 1
+
+image:
+  repository: "${DOCKER_USERNAME}/fibonacci_rust"
+  tag: "v107"
+
+  pullPolicy: IfNotPresent
+
+imagePullSecrets:
+  - name: regcred
+
+service:
+  type: NodePort
+  port: 8080
+  nodePort: 30000
+
+serviceAccount:
+  create: true
+  name: ""
+
+ingress:
+  enabled: false
+  annotations: {}
+  hosts:
+    - host: chart-example.local
+      paths: []
+  tls: []
+
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+fullnameOverride: ""

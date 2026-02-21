@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fibonacci-deployment
+  labels:
+    app: fibonacci
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fibonacci
+  template:
+    metadata:
+      labels:
+        app: fibonacci
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: fibonacci
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - containerPort: 8080
+          resources:
+            limits:
+              cpu: {{ .Values.resources.limits.cpu }}
+              memory: {{ .Values.resources.limits.memory }}
+            requests:
+              cpu: {{ .Values.resources.requests.cpu }}
+              memory: {{ .Values.resources.requests.memory }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 10
+          volumeMounts:
+            - name: log4rs-config
+              mountPath: /usr/src/app/log4rs.yaml
+              subPath: log4rs.yaml
+            - name: log-volume
+              mountPath: /var/log
+            - name: tmp-volume
+              mountPath: /tmp
+      volumes:
+        - name: log4rs-config
+          configMap:
+            name: fibonacci-log4rs
+            items:
+              - key: log4rs.yaml
+                path: log4rs.yaml
+        - name: log-volume
+          emptyDir: {}
+        - name: tmp-volume
+          emptyDir: {}

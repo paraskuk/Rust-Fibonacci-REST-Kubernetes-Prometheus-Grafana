@@ -1,0 +1,27 @@
+/target
+interview_qa.md
+
+# Terraform state files
+*.tfstate
+*.tfstate.backup
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# Environment files
+.env
+.env.local
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+/DISCORD_WEBHOOK_SETUP.md
+/GITHUB_WEBHOOKS_EXAMPLES.md
+/GITHUB_WEBHOOKS_GUIDE.md
