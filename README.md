@@ -664,6 +664,7 @@ All metrics exposed by the Fibonacci service:
 | `make import-dashboard` | Show instructions for importing dashboard |
 | `make clean` | Stop all port-forward processes |
 | `make quickstart` | Show quick start guide |
+| `make squash-history` | Squash all git commits into a single commit |
 
 ### Common Workflows
 
@@ -774,4 +775,47 @@ helm uninstall fibonacci
 ```cmd
 kubectl delete secret regcred
 minikube delete
+```
+
+## Git History Management
+
+> [!NOTE]
+> Yes, it is possible to eliminate all previous commits and keep only a single commit representing the current state of the repository.
+
+### Squashing All Commits Into One
+
+The `squash-history` Makefile target automates this process using Git's orphan branch technique:
+
+```bash
+make squash-history
+```
+
+This command:
+1. Creates a new branch called `clean-history` with **no commit history** (orphan branch).
+2. Stages all current project files.
+3. Creates a single `Initial commit (squashed history)` commit.
+
+You then replace the target branch with the clean history:
+
+```bash
+git push --force origin clean-history:main
+```
+
+> [!WARNING]
+> `git push --force` rewrites public history. All collaborators must re-clone or reset their local copies afterwards. Coordinate with your team before running this on a shared branch.
+
+### Manual Steps (without Makefile)
+
+```bash
+# 1. Create an orphan branch (no history)
+git checkout --orphan clean-history
+
+# 2. Stage all files
+git add -A
+
+# 3. Create a single commit
+git commit -m "Initial commit (squashed history)"
+
+# 4. Replace the main branch (requires force push permission)
+git push --force origin clean-history:main
 ```

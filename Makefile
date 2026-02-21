@@ -1,5 +1,5 @@
  
-.PHONY: help check-grafana check-prometheus check-fibonacci check-all grafana prometheus fibonacci all traffic dashboard setup-datasource import-dashboard clean quickstart restart restart-all diagnose
+.PHONY: help check-grafana check-prometheus check-fibonacci check-all grafana prometheus fibonacci all traffic dashboard setup-datasource import-dashboard clean quickstart restart restart-all diagnose squash-history
 
 # Default target
 help:
@@ -22,6 +22,7 @@ help:
 	@echo "  make restart-all      - Restart all services (Grafana, Prometheus, Fibonacci)"
 	@echo "  make clean            - Stop all port-forwards"
 	@echo "  make quickstart       - Show quick start guide"
+	@echo "  make squash-history   - Squash all git commits into a single commit"
 	@echo ""
 
 # Check if services are running
@@ -364,3 +365,23 @@ diagnose:
 	@echo "IMPORTANT: Make sure Access is set to 'Server' not 'Browser'"
 	@echo ""
 
+
+# Squash all git commits into a single commit
+squash-history:
+	@echo "=========================================="
+	@echo "Squashing all git commits into one"
+	@echo "=========================================="
+	@echo ""
+	@echo "Creating orphan branch 'clean-history' with no prior commits..."
+	@git checkout --orphan clean-history
+	@git add -A
+	@git commit -m "Initial commit (squashed history)"
+	@echo ""
+	@echo "Done. Your current branch 'clean-history' now has a single commit."
+	@echo ""
+	@echo "To replace the main branch with this clean history, run:"
+	@echo "  git push --force origin clean-history:main"
+	@echo ""
+	@echo "WARNING: Force-pushing rewrites public history. Coordinate with"
+	@echo "         all collaborators before doing this on a shared branch."
+	@echo ""
